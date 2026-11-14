@@ -127,16 +127,13 @@ const YTPlayables = (() => {
 
 /*************************************************************************
  * 2. SYNTHESIZED WEB AUDIO API SOUND ENGINE
- *    Crisp glassy marimba pops for safe tiles, low buzz/thud for red tiles,
- *    and harmonic level-up chimes. Zero external audio assets needed.
+ *    Can-opening pops and water splashes for safe tiles, low buzz/thud for
+ *    red tiles, and harmonic level-up chimes. Zero external audio assets needed.
  *************************************************************************/
 const SoundFX = (() => {
   let ctx = null;
   let userMuted = false;
   let platformAudioEnabled = true;
-
-  // Pentatonic cool frequencies for combo progression
-  const COMBO_SCALE = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51];
 
   function ensureContext() {
     if (!ctx) {
@@ -152,61 +149,77 @@ const SoundFX = (() => {
     return !userMuted && platformAudioEnabled;
   }
 
-  function playSafeTap(comboCount = 1) {
+  function playSafeTap() {
     if (!canPlay()) return;
     ensureContext();
     if (!ctx) return;
 
     const now = ctx.currentTime;
-    const noteIndex = Math.min(comboCount - 1, COMBO_SCALE.length - 1);
-    const baseFreq = COMBO_SCALE[Math.max(0, noteIndex)];
-
-    // A short filtered rush of water beneath the pitched pop.
-    const water = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.15), ctx.sampleRate);
-    const samples = water.getChannelData(0);
+    const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.22), ctx.sampleRate);
+    const samples = noise.getChannelData(0);
     for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
-    const spray = ctx.createBufferSource();
-    const filter = ctx.createBiquadFilter();
-    const sprayGain = ctx.createGain();
-    spray.buffer = water;
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(3800, now);
-    filter.frequency.exponentialRampToValueAtTime(650, now + 0.15);
-    sprayGain.gain.setValueAtTime(0.11, now);
-    sprayGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    spray.connect(filter);
-    filter.connect(sprayGain);
-    sprayGain.connect(ctx.destination);
-    spray.start(now);
 
-    // Primary sine-triangle glassy pop
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(baseFreq * 0.92, now);
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.18, now + 0.065);
+    // The sharp tab click and fizz give the pop a can-opening edge.
+    const click = ctx.createBufferSource();
+    const clickFilter = ctx.createBiquadFilter();
+    const clickGain = ctx.createGain();
+    click.buffer = noise;
+    clickFilter.type = 'highpass';
+    clickFilter.frequency.setValueAtTime(2400, now);
+    clickGain.gain.setValueAtTime(0.28, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    click.connect(clickFilter);
+    clickFilter.connect(clickGain);
+    clickGain.connect(ctx.destination);
+    click.start(now);
+    click.stop(now + 0.03);
 
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.22, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.17);
+    const fizz = ctx.createBufferSource();
+    const fizzFilter = ctx.createBiquadFilter();
+    const fizzGain = ctx.createGain();
+    fizz.buffer = noise;
+    fizzFilter.type = 'bandpass';
+    fizzFilter.frequency.setValueAtTime(1700, now);
+    fizzFilter.Q.setValueAtTime(0.7, now);
+    fizzGain.gain.setValueAtTime(0.001, now);
+    fizzGain.gain.linearRampToValueAtTime(0.11, now + 0.018);
+    fizzGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    fizz.connect(fizzFilter);
+    fizzFilter.connect(fizzGain);
+    fizzGain.connect(ctx.destination);
+    fizz.start(now);
+    fizz.stop(now + 0.13);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.18);
+    // A descending thump reads as the balloon bursting beneath the fizz.
+    const pop = ctx.createOscillator();
+    const popGain = ctx.createGain();
+    pop.type = 'triangle';
+    pop.frequency.setValueAtTime(260, now);
+    pop.frequency.exponentialRampToValueAtTime(90, now + 0.095);
+    popGain.gain.setValueAtTime(0.001, now);
+    popGain.gain.linearRampToValueAtTime(0.22, now + 0.006);
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.105);
+    pop.connect(popGain);
+    popGain.connect(ctx.destination);
+    pop.start(now);
+    pop.stop(now + 0.11);
 
-    // Harmonic sparkle overtone
-    const over = ctx.createOscillator();
-    const overGain = ctx.createGain();
-    over.type = 'sine';
-    over.frequency.setValueAtTime(baseFreq * 2, now);
-    overGain.gain.setValueAtTime(0.08, now);
-    overGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.11);
-
-    over.connect(overGain);
-    overGain.connect(ctx.destination);
-    over.start(now);
-    over.stop(now + 0.12);
+    // The delayed, lower noise tail sounds like water hitting the surface.
+    const splash = ctx.createBufferSource();
+    const splashFilter = ctx.createBiquadFilter();
+    const splashGain = ctx.createGain();
+    splash.buffer = noise;
+    splashFilter.type = 'lowpass';
+    splashFilter.frequency.setValueAtTime(1200, now + 0.025);
+    splashFilter.frequency.exponentialRampToValueAtTime(350, now + 0.21);
+    splashGain.gain.setValueAtTime(0.001, now);
+    splashGain.gain.linearRampToValueAtTime(0.17, now + 0.045);
+    splashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
+    splash.connect(splashFilter);
+    splashFilter.connect(splashGain);
+    splashGain.connect(ctx.destination);
+    splash.start(now);
+    splash.stop(now + 0.22);
   }
 
   function playHazardHit() {
@@ -455,13 +468,32 @@ const RAINBOW_PALETTE = {
 };
 
 const SLOW_PALETTE = {
-  name: 'Frost',
-  image: 'assets/balloons/b-blue.webp',
-  top: '#8CEBFF',
-  base: '#35C9F2',
-  lip: '#155A9B',
-  particle: ['#B9F5FF', '#5EDBF4', '#FFFFFF']
+  name: 'Slowdown',
+  image: 'assets/balloons/b-white.webp',
+  top: '#F7F8FF',
+  base: '#DCE5F2',
+  lip: '#8B9DBA',
+  particle: ['#FFFFFF', '#DCE5F2', '#A9C3E3']
 };
+const LIFE_PALETTE = {
+  name: 'Extra Life',
+  image: 'assets/balloons/b-white.webp',
+  top: '#FFF7FA',
+  base: '#F2DCE6',
+  lip: '#D43157',
+  particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
+};
+
+// Warm every gameplay image while the player is on the start screen.
+// Keep the Image objects alive so browsers can reuse their decoded artwork.
+const preloadedBalloonImages = new Map();
+for (const palette of [...COOL_SAFE_PALETTES, HAZARD_PALETTE, RAINBOW_PALETTE, SLOW_PALETTE, LIFE_PALETTE]) {
+  if (preloadedBalloonImages.has(palette.image)) continue;
+  const image = new Image();
+  image.src = palette.image;
+  image.decode().catch(() => {});
+  preloadedBalloonImages.set(palette.image, image);
+}
 
 /*************************************************************************
  * 4. PARTICLE & FLOATING SCORE FX ENGINE (2D CANVAS)
@@ -616,12 +648,21 @@ const FXEngine = (() => {
       }
       ctx.save();
       ctx.globalAlpha = Math.max(0, ft.alpha);
-      ctx.font = `800 ${Math.round(15 * ft.scale)}px "JetBrains Mono", monospace`;
+      ctx.font = `800 ${Math.round(40 * ft.scale)}px "JetBrains Mono", monospace`;
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const halfWidth = ctx.measureText(ft.text).width / 2;
+      const drawX = Math.max(halfWidth + 6, Math.min(window.innerWidth - halfWidth - 6, ft.x));
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(16, 56, 85, 0.35)';
+      ctx.shadowBlur = 7;
+      ctx.shadowOffsetY = 2;
+      ctx.strokeText(ft.text, drawX, ft.y);
+      ctx.shadowColor = 'transparent';
       ctx.fillStyle = ft.color;
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.95)';
-      ctx.shadowBlur = 6;
-      ctx.fillText(ft.text, ft.x, ft.y);
+      ctx.fillText(ft.text, drawX, ft.y);
       ctx.restore();
     }
   }
@@ -644,6 +685,8 @@ const Game = (() => {
   const SLOW_CHANCE = 0.035;
   const SLOW_RELIEF_MS = 17000; // Rewind one speed level; the ramp resumes from there.
   const SLOW_SPAWN_COOLDOWN_MS = 25000;
+  const LIFE_CHANCE = 0.035;
+  const LIFE_SPAWN_COOLDOWN_MS = 30000;
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
   const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
 
@@ -663,6 +706,7 @@ const Game = (() => {
   // Modals
   const modalBackdrop = document.getElementById('modalBackdrop');
   const startModal = document.getElementById('startModal');
+  const howToPlayModal = document.getElementById('howToPlayModal');
   const pauseModal = document.getElementById('pauseModal');
   const gameOverModal = document.getElementById('gameOverModal');
 
@@ -694,6 +738,7 @@ const Game = (() => {
   let elapsedPlayTimeMs = 0;
   let difficultyTimeMs = 0;
   let lastSlowSpawnAtMs = -SLOW_SPAWN_COOLDOWN_MS;
+  let lastLifeSpawnAtMs = -LIFE_SPAWN_COOLDOWN_MS;
   let lastFrameTime = performance.now();
   let spawnAccumulatorMs = 0;
   let tileUidCounter = 0;
@@ -815,7 +860,7 @@ const Game = (() => {
     }
     currentSpeedLevel = diff.level;
     peakSpeedLevel = Math.max(peakSpeedLevel, diff.level);
-    speedBadge.textContent = `LVL ${diff.level}`;
+    speedBadge.textContent = `Level ${diff.level}`;
   }
 
   /**
@@ -849,12 +894,18 @@ const Game = (() => {
       !Array.from(activeTiles.values()).some((tile) => tile.isSlow) &&
       Math.random() < SLOW_CHANCE;
     if (isSlow) lastSlowSpawnAtMs = elapsedPlayTimeMs;
+    const isLife = !isHazard && !isRainbow && !isSlow &&
+      elapsedPlayTimeMs - lastLifeSpawnAtMs >= LIFE_SPAWN_COOLDOWN_MS &&
+      !Array.from(activeTiles.values()).some((tile) => tile.isLife) &&
+      Math.random() < LIFE_CHANCE;
+    if (isLife) lastLifeSpawnAtMs = elapsedPlayTimeMs;
 
     const cellIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
     const palette = isHazard
       ? HAZARD_PALETTE
       : isRainbow ? RAINBOW_PALETTE
       : isSlow ? SLOW_PALETTE
+      : isLife ? LIFE_PALETTE
       : COOL_SAFE_PALETTES[Math.floor(Math.random() * COOL_SAFE_PALETTES.length)];
 
     // Red tiles stay slightly shorter so they clear out crisply
@@ -865,8 +916,9 @@ const Game = (() => {
     const uid = ++tileUidCounter;
     const tileEl = document.createElement('button');
     tileEl.type = 'button';
-    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : 'tile-safe'}`;
-    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'Frost balloon — slow the game down' : `${palette.name} balloon — pop`);
+    tileEl.disabled = true;
+    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : isLife ? 'tile-safe tile-life' : 'tile-safe'}`;
+    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'White snail balloon — slow the game down' : isLife ? 'White heart balloon — restore one life, up to three' : `${palette.name} balloon — pop`);
 
     // Palette variables still support particle colors and the rainbow glow, while
     // the visible balloon itself comes from assets/balloons.
@@ -883,7 +935,18 @@ const Game = (() => {
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
       : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
-      : isSlow ? `<span class="slow-label" aria-hidden="true">❄</span>`
+      : isSlow ? `<svg class="slow-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M4 24.5h19.5c2.5 0 4.5-2 4.5-4.5v-4.5c0-2-1.5-3.5-3.5-3.5S21 13.5 21 15.5V18" />
+          <path d="M24.5 12V7.5m3.5 5V9" />
+          <circle cx="24.5" cy="7" r="1" fill="currentColor" stroke="none" />
+          <circle cx="28" cy="8.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12.5" cy="17.5" r="6.5" />
+          <path d="M12.5 14.5a3 3 0 1 1-3 3 1.5 1.5 0 0 1 3 0" />
+        </svg>`
+      : isLife ? `<svg class="life-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21 3.8 12.7A5 5 0 0 1 11 5.8L12 6.8l1-1a5 5 0 0 1 7.2 6.9Z" fill="currentColor" />
+          <path d="M12 9v7m-3.5-3.5h7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
+        </svg>`
       : `<div class="safe-pip pointer-events-none"></div>`;
 
     tileEl.innerHTML = `
@@ -916,13 +979,6 @@ const Game = (() => {
     const cellEl = cellElements[cellIndex];
     cellEl.appendChild(tileEl);
 
-    // Inflate the balloon on the next frame.
-    requestAnimationFrame(() => {
-      if (tileEl.isConnected) {
-        tileEl.classList.add('tile-active');
-      }
-    });
-
     activeTiles.set(cellIndex, {
       uid,
       cellIndex,
@@ -931,9 +987,26 @@ const Game = (() => {
       isHazard,
       isRainbow,
       isSlow,
+      isLife,
       palette,
       duration,
-      elapsed: 0
+      elapsed: 0,
+      ready: false
+    });
+
+    // The icon and timer must never appear before the artwork is decoded.
+    tileEl.querySelector('.balloon-art').decode().then(() => {
+      requestAnimationFrame(() => {
+        const tile = activeTiles.get(cellIndex);
+        if (!tileEl.isConnected || tile?.uid !== uid) return;
+        tile.ready = true;
+        tileEl.disabled = false;
+        tileEl.classList.add('tile-active');
+      });
+    }).catch(() => {
+      if (activeTiles.get(cellIndex)?.uid !== uid) return;
+      activeTiles.delete(cellIndex);
+      tileEl.remove();
     });
   }
 
@@ -943,7 +1016,7 @@ const Game = (() => {
   function handleTileTap(cellIndex, uid) {
     if (state !== 'PLAYING') return;
     const tile = activeTiles.get(cellIndex);
-    if (!tile || tile.uid !== uid) return;
+    if (!tile || tile.uid !== uid || !tile.ready) return;
 
     // Remove from active map immediately so it cannot be double-tapped
     activeTiles.delete(cellIndex);
@@ -969,6 +1042,17 @@ const Game = (() => {
 
       triggerHazardFeedback();
       deductLife();
+    } else if (tile.isLife) {
+      SoundFX.playSafeTap();
+      SoundFX.playSpeedUp();
+      FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
+      if (lives < MAX_LIVES) {
+        lives++;
+        renderLives();
+        FXEngine.spawnFloatingText(centerX, centerY - 6, '+1 LIFE!', '#D43157', true);
+      } else {
+        FXEngine.spawnFloatingText(centerX, centerY - 6, 'LIVES FULL', '#D43157', false);
+      }
     } else {
       // TAPPED COOL SAFE TILE -> SCORE POINTS & BUILD COMBO!
       safeTappedCount++;
@@ -988,9 +1072,8 @@ const Game = (() => {
         saveBestScore(score);
       }
 
-      SoundFX.playSafeTap(combo);
-      if (tile.isRainbow) SoundFX.playSpeedUp();
-      if (tile.isSlow) SoundFX.playSlowDown();
+      SoundFX.playSafeTap();
+      if (tile.isRainbow || tile.isSlow) SoundFX.playSpeedUp();
       FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
       FXEngine.spawnFloatingText(
         centerX,
@@ -1018,7 +1101,7 @@ const Game = (() => {
       if (tile.el.isConnected) tile.el.remove();
     }, 170);
 
-    if (!tile.isHazard) {
+    if (!tile.isHazard && !tile.isLife) {
       // Player missed a safe tile
       safeMissedCount++;
       if (combo > 0) {
@@ -1095,6 +1178,7 @@ const Game = (() => {
     elapsedPlayTimeMs = 0;
     difficultyTimeMs = 0;
     lastSlowSpawnAtMs = -SLOW_SPAWN_COOLDOWN_MS;
+    lastLifeSpawnAtMs = -LIFE_SPAWN_COOLDOWN_MS;
     spawnAccumulatorMs = 500; // Spawn first tile quickly
 
     renderLives();
@@ -1212,6 +1296,7 @@ const Game = (() => {
       // Update active tiles and their shrinking SVG progress rings
       const circumference = 106.8;
       activeTiles.forEach((tile, cellIndex) => {
+        if (!tile.ready) return;
         tile.elapsed += dt;
         const progress = Math.min(1, tile.elapsed / tile.duration);
         if (tile.timerCircle) {
@@ -1239,6 +1324,30 @@ const Game = (() => {
 
   // Wire UI Controls & Listeners
   function bindEvents() {
+    const howToPlayBtn = document.getElementById('howToPlayBtn');
+    const gameHelpBtn = document.getElementById('gameHelpBtn');
+    let helpOpenedDuringPlay = false;
+    howToPlayBtn.addEventListener('click', () => howToPlayModal.showModal());
+    gameHelpBtn.addEventListener('click', () => {
+      if (state !== 'PLAYING') return;
+      helpOpenedDuringPlay = true;
+      state = 'PAUSED';
+      setScreen('pause');
+      howToPlayModal.showModal();
+    });
+    document.getElementById('closeHowToPlayBtn').addEventListener('click', () => howToPlayModal.close());
+    document.getElementById('gotItBtn').addEventListener('click', () => howToPlayModal.close());
+    howToPlayModal.addEventListener('close', () => {
+      if (helpOpenedDuringPlay) {
+        helpOpenedDuringPlay = false;
+        state = 'PLAYING';
+        setScreen('play');
+        lastFrameTime = performance.now();
+        gameHelpBtn.focus({ preventScroll: true });
+      } else {
+        howToPlayBtn.focus({ preventScroll: true });
+      }
+    });
     document.querySelectorAll('.home-button').forEach((button) => button.addEventListener('click', () => {
       clearTimeout(gameOverTimer);
       activeTiles.forEach((tile) => tile.el.remove());
@@ -1283,6 +1392,8 @@ const Game = (() => {
     // Keyboard shortcut (Space/Enter to start or resume, Escape/P to pause)
     // NOTE: Never call e.preventDefault() on Escape per YouTube Playables certification rules
     window.addEventListener('keydown', (e) => {
+      // The native help dialog handles focus and Escape; game shortcuts must wait.
+      if (howToPlayModal.open) return;
       if (e.key === 'Tab' && !modalBackdrop.classList.contains('hidden')) {
         const visibleModal = [startModal, pauseModal, gameOverModal].find((el) => !el.classList.contains('hidden'));
         const controls = visibleModal.querySelectorAll('button, input');
