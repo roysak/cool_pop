@@ -695,6 +695,7 @@ const Game = (() => {
   // Modals
   const modalBackdrop = document.getElementById('modalBackdrop');
   const startModal = document.getElementById('startModal');
+  const howToPlayModal = document.getElementById('howToPlayModal');
   const pauseModal = document.getElementById('pauseModal');
   const gameOverModal = document.getElementById('gameOverModal');
 
@@ -1301,6 +1302,30 @@ const Game = (() => {
 
   // Wire UI Controls & Listeners
   function bindEvents() {
+    const howToPlayBtn = document.getElementById('howToPlayBtn');
+    const gameHelpBtn = document.getElementById('gameHelpBtn');
+    let helpOpenedDuringPlay = false;
+    howToPlayBtn.addEventListener('click', () => howToPlayModal.showModal());
+    gameHelpBtn.addEventListener('click', () => {
+      if (state !== 'PLAYING') return;
+      helpOpenedDuringPlay = true;
+      state = 'PAUSED';
+      setScreen('pause');
+      howToPlayModal.showModal();
+    });
+    document.getElementById('closeHowToPlayBtn').addEventListener('click', () => howToPlayModal.close());
+    document.getElementById('gotItBtn').addEventListener('click', () => howToPlayModal.close());
+    howToPlayModal.addEventListener('close', () => {
+      if (helpOpenedDuringPlay) {
+        helpOpenedDuringPlay = false;
+        state = 'PLAYING';
+        setScreen('play');
+        lastFrameTime = performance.now();
+        gameHelpBtn.focus({ preventScroll: true });
+      } else {
+        howToPlayBtn.focus({ preventScroll: true });
+      }
+    });
     document.querySelectorAll('.home-button').forEach((button) => button.addEventListener('click', () => {
       clearTimeout(gameOverTimer);
       activeTiles.forEach((tile) => tile.el.remove());
@@ -1345,6 +1370,8 @@ const Game = (() => {
     // Keyboard shortcut (Space/Enter to start or resume, Escape/P to pause)
     // NOTE: Never call e.preventDefault() on Escape per YouTube Playables certification rules
     window.addEventListener('keydown', (e) => {
+      // The native help dialog handles focus and Escape; game shortcuts must wait.
+      if (howToPlayModal.open) return;
       if (e.key === 'Tab' && !modalBackdrop.classList.contains('hidden')) {
         const visibleModal = [startModal, pauseModal, gameOverModal].find((el) => !el.classList.contains('hidden'));
         const controls = visibleModal.querySelectorAll('button, input');

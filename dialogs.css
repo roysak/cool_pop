@@ -1,4 +1,39 @@
 /* Match the home artwork: inflated violet edges, pool blue, and glossy candy buttons. */
+.how-to-play-card {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: 430px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 48px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.how-to-play-card::backdrop { background: #19416c99; backdrop-filter: blur(8px); }
+.how-to-play-card .edition-label { margin-top: 28px; font-size: 9px; }
+.help-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #e1f7ff;
+  color: #6a25b1;
+  font-size: 28px;
+}
+.help-rules { display: grid; gap: 14px; margin: 20px 0; padding: 0; list-style: none; text-align: left; }
+.help-rules li { display: flex; align-items: center; gap: 12px; }
+.help-rules img, .help-symbol { flex: 0 0 40px; width: 40px; height: 48px; object-fit: contain; }
+.help-symbol { display: grid; place-items: center; border-radius: 50%; background: #fff; box-shadow: inset 0 -3px 6px #b7d8e8; font-size: 26px; }
+.help-heart { color: #d43157; }
+.help-rules strong { color: #51317c; font-size: 14px; }
+.help-rules p, .help-tip { color: #516484; font-size: 13px; line-height: 1.5; }
+.help-rules p { margin: 3px 0 0; }
+.help-tip { padding: 12px; border-radius: 14px; background: #e1f7ff; text-align: left; }
+.how-to-play-card .splash-button { margin-top: 16px; }
+
 :root {
   --button-gloss: radial-gradient(ellipse at 24% 12%, #ffe9ffeb, #f6b6ff70 15%, transparent 43%),
     radial-gradient(ellipse at 76% 83%, #df83ffb3, transparent 48%),
@@ -198,7 +233,7 @@ body[data-screen="over"] .corner-brand { display: none; }
 .pause-card .splash-button { margin-top: 22px; }
 #restartFromPauseBtn { min-height: 50px; margin-top: 13px; }
 
-#muteBtn, #pauseBtn {
+#muteBtn, #gameHelpBtn, #pauseBtn {
   min-width: 44px;
   min-height: 44px;
   border: 1px solid #c4f3ff;
@@ -207,8 +242,8 @@ body[data-screen="over"] .corner-brand { display: none; }
   color: #245884;
   box-shadow: inset 0 2px 2px #fff, inset 0 -3px 4px #1989c050, 0 3px 0 #3b90bc;
 }
-#muteBtn:hover, #pauseBtn:hover { background: radial-gradient(ellipse at 30% 10%, #fff, transparent 55%), linear-gradient(#b9f1ff, #64d2f2); box-shadow: inset 0 2px 2px #fff, 0 3px 0 #3b90bc; }
-#muteBtn:active, #pauseBtn:active { transform: translateY(2px); box-shadow: inset 0 1px 3px #2589b540, 0 1px 0 #3b90bc; }
+#muteBtn:hover, #gameHelpBtn:hover, #pauseBtn:hover { background: radial-gradient(ellipse at 30% 10%, #fff, transparent 55%), linear-gradient(#b9f1ff, #64d2f2); box-shadow: inset 0 2px 2px #fff, 0 3px 0 #3b90bc; }
+#muteBtn:active, #gameHelpBtn:active, #pauseBtn:active { transform: translateY(2px); box-shadow: inset 0 1px 3px #2589b540, 0 1px 0 #3b90bc; }
 @media (hover: hover) {
   .quiet-button:hover { transform: translateY(-1px); filter: brightness(1.04); }
 }
