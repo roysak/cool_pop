@@ -266,6 +266,28 @@ const SoundFX = (() => {
     });
   }
 
+  function playSlowDown() {
+    if (!canPlay()) return;
+    ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    [880, 659.25, 523.25].forEach((freq, idx) => {
+      const start = now + idx * 0.075;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.001, start);
+      gain.gain.linearRampToValueAtTime(0.10, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0008, start + 0.26);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.27);
+    });
+  }
+
   function playGameOver() {
     if (!canPlay()) return;
     ensureContext();
@@ -305,6 +327,7 @@ const SoundFX = (() => {
     playSafeTap,
     playHazardHit,
     playSpeedUp,
+    playSlowDown,
     playGameOver,
     toggleUserMute,
     setPlatformAudio,
@@ -429,6 +452,15 @@ const RAINBOW_PALETTE = {
   base: '#A220DF',
   lip: '#5A19AE',
   particle: RAINBOW_COLORS
+};
+
+const SLOW_PALETTE = {
+  name: 'Frost',
+  image: 'assets/balloons/b-blue.webp',
+  top: '#8CEBFF',
+  base: '#35C9F2',
+  lip: '#155A9B',
+  particle: ['#B9F5FF', '#5EDBF4', '#FFFFFF']
 };
 
 /*************************************************************************
@@ -608,7 +640,10 @@ const FXEngine = (() => {
 const Game = (() => {
   const TOTAL_CELLS = 25;
   const MAX_LIVES = 3;
-  const RAINBOW_CHANCE = 0.03; // 3% of safe spawns, once there is a score to double.
+  const RAINBOW_CHANCE = 0.03; // 3% of safe spawns.
+  const SLOW_CHANCE = 0.035;
+  const SLOW_RELIEF_MS = 17000; // Rewind one speed level; the ramp resumes from there.
+  const SLOW_SPAWN_COOLDOWN_MS = 25000;
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
   const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
 
@@ -652,10 +687,13 @@ const Game = (() => {
   let safeTappedCount = 0;
   let safeMissedCount = 0;
   let currentSpeedLevel = 1;
+  let peakSpeedLevel = 1;
   let strictMissMode = false;
 
   // Timing variables
   let elapsedPlayTimeMs = 0;
+  let difficultyTimeMs = 0;
+  let lastSlowSpawnAtMs = -SLOW_SPAWN_COOLDOWN_MS;
   let lastFrameTime = performance.now();
   let spawnAccumulatorMs = 0;
   let tileUidCounter = 0;
@@ -728,39 +766,34 @@ const Game = (() => {
   }
 
   /**
-   * Calculates dynamic difficulty parameters based on score and elapsed time.
-   * Both spawn interval and tile stay duration shorten smoothly.
+   * Calculates difficulty from the play-time ramp. Slow balloons rewind this
+   * clock so the pace eases back and then rises gradually again.
    */
   function getDifficultyParams() {
-    // Progress factor 0.0 -> 1.0+ as player advances
-    const timeFactor = elapsedPlayTimeMs / 75000; // ramps over 75s
-    const scoreFactor = score / 3200;
-    const progress = Math.min(1.15, timeFactor * 0.55 + scoreFactor * 0.45);
+    // Nine level steps spread across 150 seconds of effective play time.
+    const progress = Math.min(1, difficultyTimeMs / 150000);
 
     // Speed level from 1 to 10
-    const level = Math.min(10, 1 + Math.floor(progress * 8.5));
+    const level = Math.min(10, 1 + Math.floor(progress * 9));
 
-    // Spawn interval shortens from 880ms down to 255ms
-    const spawnInterval = Math.max(255, Math.round(880 - progress * 580));
+    // Spawn interval shortens from 880ms down to 300ms.
+    const spawnInterval = Math.round(880 - progress * 580);
 
-    // Tile lifetime shortens from 2250ms down to 780ms
-    const tileStayDuration = Math.max(780, Math.round(2250 - progress * 1320));
+    // Tile lifetime shortens from 2250ms down to 950ms.
+    const tileStayDuration = Math.round(2250 - progress * 1300);
 
-    // Max simultaneous tiles on the 6x6 board scales from 3 to 9
-    const maxSimultaneous = Math.min(9, 3 + Math.floor(progress * 6));
+    // Max simultaneous tiles scales from 3 to 8.
+    const maxSimultaneous = 3 + Math.floor(progress * 5);
 
-    // Red hazard spawn probability scales from 20% to 33%
-    const hazardChance = Math.min(0.33, 0.20 + progress * 0.12);
-
-    const speedMultiplierText = (1 + (level - 1) * 0.15).toFixed(1) + 'x';
+    // Red hazard spawn probability scales from 20% to 30%.
+    const hazardChance = 0.20 + progress * 0.10;
 
     return {
       level,
       spawnInterval,
       tileStayDuration,
       maxSimultaneous,
-      hazardChance,
-      speedMultiplierText
+      hazardChance
     };
   }
 
@@ -776,11 +809,12 @@ const Game = (() => {
 
     const diff = getDifficultyParams();
     if (diff.level > currentSpeedLevel) {
-      currentSpeedLevel = diff.level;
       SoundFX.playSpeedUp();
       speedBadge.classList.add('text-sky-600', 'scale-110');
       setTimeout(() => speedBadge.classList.remove('text-sky-600', 'scale-110'), 350);
     }
+    currentSpeedLevel = diff.level;
+    peakSpeedLevel = Math.max(peakSpeedLevel, diff.level);
     speedBadge.textContent = `LVL ${diff.level}`;
   }
 
@@ -807,14 +841,20 @@ const Game = (() => {
     const isHazard =
       currentHazards < Math.ceil(diff.maxSimultaneous * 0.45) &&
       Math.random() < diff.hazardChance;
-    const isRainbow = !isHazard && score > 0 &&
+    const isRainbow = !isHazard &&
       !Array.from(activeTiles.values()).some((tile) => tile.isRainbow) &&
       Math.random() < RAINBOW_CHANCE;
+    const isSlow = !isHazard && !isRainbow && diff.level > 1 &&
+      elapsedPlayTimeMs - lastSlowSpawnAtMs >= SLOW_SPAWN_COOLDOWN_MS &&
+      !Array.from(activeTiles.values()).some((tile) => tile.isSlow) &&
+      Math.random() < SLOW_CHANCE;
+    if (isSlow) lastSlowSpawnAtMs = elapsedPlayTimeMs;
 
     const cellIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
     const palette = isHazard
       ? HAZARD_PALETTE
       : isRainbow ? RAINBOW_PALETTE
+      : isSlow ? SLOW_PALETTE
       : COOL_SAFE_PALETTES[Math.floor(Math.random() * COOL_SAFE_PALETTES.length)];
 
     // Red tiles stay slightly shorter so they clear out crisply
@@ -825,8 +865,8 @@ const Game = (() => {
     const uid = ++tileUidCounter;
     const tileEl = document.createElement('button');
     tileEl.type = 'button';
-    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : 'tile-safe'}`;
-    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double your score' : `${palette.name} balloon — pop`);
+    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : 'tile-safe'}`;
+    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'Frost balloon — slow the game down' : `${palette.name} balloon — pop`);
 
     // Palette variables still support particle colors and the rainbow glow, while
     // the visible balloon itself comes from assets/balloons.
@@ -843,6 +883,7 @@ const Game = (() => {
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
       : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
+      : isSlow ? `<span class="slow-label" aria-hidden="true">❄</span>`
       : `<div class="safe-pip pointer-events-none"></div>`;
 
     tileEl.innerHTML = `
@@ -889,6 +930,7 @@ const Game = (() => {
       timerCircle,
       isHazard,
       isRainbow,
+      isSlow,
       palette,
       duration,
       elapsed: 0
@@ -933,27 +975,29 @@ const Game = (() => {
       combo++;
       if (combo > maxCombo) maxCombo = combo;
 
-      // Quick-tap speed bonus
+      // Quick-tap bonus is deliberately modest so each pop earns fewer points.
       const remainingRatio = Math.max(0, 1 - tile.elapsed / tile.duration);
-      const speedBonus = Math.round(remainingRatio * 10);
+      const speedBonus = Math.round(remainingRatio * 4);
       const multiplier = Math.min(8, 1 + Math.floor(combo / 5));
-      // Rainbow pops double the existing total instead of awarding ordinary pop points.
-      const pointsEarned = tile.isRainbow ? score : (15 + speedBonus) * multiplier;
+      // Rainbow doubles only this pop's points, never the accumulated score.
+      const pointsEarned = (6 + speedBonus) * multiplier * (tile.isRainbow ? 2 : 1);
 
       score += pointsEarned;
+      if (tile.isSlow) difficultyTimeMs = Math.max(0, difficultyTimeMs - SLOW_RELIEF_MS);
       if (score > bestScore) {
         saveBestScore(score);
       }
 
       SoundFX.playSafeTap(combo);
       if (tile.isRainbow) SoundFX.playSpeedUp();
+      if (tile.isSlow) SoundFX.playSlowDown();
       FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
       FXEngine.spawnFloatingText(
         centerX,
         centerY - 6,
-        tile.isRainbow ? `SCORE ×2! +${pointsEarned.toLocaleString()}` : multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
+        tile.isRainbow ? `2× POP! +${pointsEarned}` : tile.isSlow ? `SLOW DOWN! +${pointsEarned}` : multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
         tile.isRainbow ? '#6E19AE' : tile.palette.lip,
-        tile.isRainbow || multiplier > 2
+        tile.isRainbow || tile.isSlow || multiplier > 2
       );
 
       updateHUD();
@@ -1047,7 +1091,10 @@ const Game = (() => {
     safeTappedCount = 0;
     safeMissedCount = 0;
     currentSpeedLevel = 1;
+    peakSpeedLevel = 1;
     elapsedPlayTimeMs = 0;
+    difficultyTimeMs = 0;
+    lastSlowSpawnAtMs = -SLOW_SPAWN_COOLDOWN_MS;
     spawnAccumulatorMs = 500; // Spawn first tile quickly
 
     renderLives();
@@ -1125,7 +1172,7 @@ const Game = (() => {
         ? Math.round((safeTappedCount / totalSafeOpportunities) * 100)
         : 0;
     summaryAccuracy.textContent = `${accuracyPercent}%`;
-    summaryPeakSpeed.textContent = `LVL ${currentSpeedLevel}`;
+    summaryPeakSpeed.textContent = `LVL ${peakSpeedLevel}`;
 
     gameOverTimer = setTimeout(() => {
       if (state !== 'GAMEOVER') return;
@@ -1147,9 +1194,11 @@ const Game = (() => {
 
     if (state === 'PLAYING') {
       elapsedPlayTimeMs += dt;
+      difficultyTimeMs += dt;
       spawnAccumulatorMs += dt;
 
       const diff = getDifficultyParams();
+      if (diff.level !== currentSpeedLevel) updateHUD();
       if (spawnAccumulatorMs >= diff.spawnInterval) {
         spawnAccumulatorMs = 0;
         spawnRandomTile();
