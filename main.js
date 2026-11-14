@@ -316,66 +316,67 @@ const SoundFX = (() => {
 /*************************************************************************
  * 3. COOL WATER BALLOON & HAZARD PALETTES
  *************************************************************************/
+// Keep these softened colors in sync with the balloon material in splash.css.
 const COOL_SAFE_PALETTES = [
   {
-    name: 'Electric Cyan',
-    top: '#00F5FF',
-    base: '#00CFFF',
-    lip: '#005CFF',
-    border: '#67E8F9',
-    shadow: 'rgba(6, 182, 212, 0.34)',
-    particle: '#00CFFF'
+    name: 'Cool Cyan',
+    top: '#20D8DF',
+    base: '#20BBDF',
+    lip: '#2065DF',
+    border: '#79DAE7',
+    shadow: 'rgba(32, 164, 186, 0.34)',
+    particle: '#20BBDF'
   },
   {
-    name: 'Electric Blue',
-    top: '#00CDFF',
-    base: '#1664FF',
-    lip: '#3D00D6',
-    border: '#7DD3FC',
-    shadow: 'rgba(2, 132, 199, 0.34)',
-    particle: '#1664FF'
+    name: 'Ocean Blue',
+    top: '#20BADF',
+    base: '#336EE2',
+    lip: '#491BBB',
+    border: '#8DCDEC',
+    shadow: 'rgba(27, 124, 174, 0.34)',
+    particle: '#336EE2'
   },
   {
-    name: 'Neon Violet',
-    top: '#EA36FF',
-    base: '#AE00FF',
-    lip: '#5700C7',
-    border: '#A5B4FC',
-    shadow: 'rgba(99, 102, 241, 0.34)',
-    particle: '#AE00FF'
+    name: 'Soft Violet',
+    top: '#D64FE6',
+    base: '#A220DF',
+    lip: '#5A19AE',
+    border: '#B0BBF1',
+    shadow: 'rgba(117, 119, 223, 0.34)',
+    particle: '#A220DF'
   },
   {
     name: 'Lime Splash',
-    top: '#C5FF00',
-    base: '#5CEB00',
-    lip: '#00A95A',
-    border: '#5EEAD4',
-    shadow: 'rgba(20, 184, 166, 0.34)',
-    particle: '#5CEB00'
+    top: '#B4DF20',
+    base: '#62CE1D',
+    lip: '#159459',
+    border: '#70D8C8',
+    shadow: 'rgba(40, 164, 150, 0.34)',
+    particle: '#62CE1D'
   },
   {
     name: 'Sunshine Yellow',
-    top: '#FFFF29',
-    base: '#FFDD00',
-    lip: '#F5A000',
-    border: '#93C5FD',
-    shadow: 'rgba(59, 130, 246, 0.34)',
-    particle: '#FFDD00'
+    top: '#E4E444',
+    base: '#DFC620',
+    lip: '#D6971F',
+    border: '#A0C6F0',
+    shadow: 'rgba(82, 136, 223, 0.34)',
+    particle: '#DFC620'
   }
 ];
 
 const HAZARD_PALETTE = {
   name: 'Crimson Hazard',
-  top: '#FF4261',
-  base: '#FF163C',
-  lip: '#BE0030',
-  border: '#FDA4AF',
-  shadow: 'rgba(244, 63, 94, 0.42)',
-  particle: '#F43F5E'
+  top: '#E75A71',
+  base: '#E23350',
+  lip: '#A6183C',
+  border: '#F2AFB7',
+  shadow: 'rgba(221, 86, 109, 0.42)',
+  particle: '#DD566D'
 };
 
-const RAINBOW_COLORS = ['#FF163C', '#FF9400', '#FFDD00', '#5CEB00', '#00CFFF', '#1664FF', '#AE00FF'];
-const RAINBOW_PALETTE = { name: 'Rainbow', top: '#EA36FF', base: '#AE00FF', lip: '#5700C7', particle: RAINBOW_COLORS };
+const RAINBOW_COLORS = ['#E23350', '#DF8F20', '#DFC620', '#62CE1D', '#20BBDF', '#336EE2', '#A220DF'];
+const RAINBOW_PALETTE = { name: 'Rainbow', top: '#D64FE6', base: '#A220DF', lip: '#5A19AE', particle: RAINBOW_COLORS };
 
 /*************************************************************************
  * 4. PARTICLE & FLOATING SCORE FX ENGINE (2D CANVAS)
@@ -427,7 +428,7 @@ const FXEngine = (() => {
     }
   }
 
-  function spawnFloatingText(x, y, text, color = '#0284C7', isLarge = false) {
+  function spawnFloatingText(x, y, text, color = '#1B7CAE', isLarge = false) {
     floatingTexts.push({
       x,
       y,
@@ -871,7 +872,7 @@ const Game = (() => {
       combo = 0;
       SoundFX.playHazardHit();
       FXEngine.spawnBurst(centerX, centerY, HAZARD_PALETTE.particle, true);
-      FXEngine.spawnFloatingText(centerX, centerY - 8, '-1 LIFE!', '#E11D48', true);
+      FXEngine.spawnFloatingText(centerX, centerY - 8, '-1 LIFE!', '#C83656', true);
 
       triggerHazardFeedback();
       deductLife();
@@ -900,7 +901,7 @@ const Game = (() => {
         centerX,
         centerY - 6,
         tile.isRainbow ? `SCORE ×2! +${pointsEarned.toLocaleString()}` : multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
-        tile.isRainbow ? '#7200C7' : tile.palette.lip,
+        tile.isRainbow ? '#6E19AE' : tile.palette.lip,
         tile.isRainbow || multiplier > 2
       );
 
@@ -935,7 +936,7 @@ const Game = (() => {
           rect.left + rect.width / 2,
           rect.top + rect.height / 2,
           'MISSED! -1 LIFE',
-          '#E11D48',
+          '#C83656',
           false
         );
         SoundFX.playHazardHit();
