@@ -849,7 +849,7 @@ const Game = (() => {
     }
     currentSpeedLevel = diff.level;
     peakSpeedLevel = Math.max(peakSpeedLevel, diff.level);
-    speedBadge.textContent = `LVL ${diff.level}`;
+    speedBadge.textContent = `Level ${diff.level}`;
   }
 
   /**
