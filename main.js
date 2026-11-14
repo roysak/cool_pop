@@ -714,7 +714,7 @@ const Game = (() => {
       const wrapper = document.createElement('div');
       wrapper.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
         isAlive
-          ? 'bg-rose-50 border border-rose-200/90 text-rose-500 shadow-sm'
+          ? 'border border-rose-200/90 text-rose-500 shadow-sm'
           : 'bg-slate-100/80 border border-slate-200/60 text-slate-300 scale-90'
       } ${i === lostLifeIndex ? 'life-lost-anim' : ''}`;
 

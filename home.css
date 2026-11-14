@@ -4,7 +4,7 @@ body[data-screen="start"] #modalBackdrop {
   align-items: center;
   overflow: hidden;
   isolation: isolate;
-  background: #39c2f2;
+  /* background: #39c2f2; */
 }
 
 body[data-screen="start"] #modalBackdrop::before {
@@ -12,16 +12,16 @@ body[data-screen="start"] #modalBackdrop::before {
   position: absolute;
   z-index: -1;
   inset: -24px;
-  background: url('assets/home-scene.webp') center / cover no-repeat;
+  /* background: url('assets/home-scene.webp') center / cover no-repeat; */
   filter: blur(20px);
 }
 
 .home-screen {
   position: relative;
   flex: 0 0 auto;
-  width: min(100vw, calc((100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 941 / 1672));
-  width: min(100vw, calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 941 / 1672));
-  aspect-ratio: 941 / 1672;
+  width: min(100vw, calc((100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 459 / 1024));
+  width: min(100vw, calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 459 / 1024));
+  aspect-ratio: 459 / 1024;
   container-type: inline-size;
 }
 
@@ -32,61 +32,92 @@ body[data-screen="start"] #modalBackdrop::before {
   pointer-events: none;
 }
 
-/* Fill common tall phones, cropping only the decorative scenery at the sides. */
+/* Keep the existing full-screen crop on portrait phones. */
 @media (min-aspect-ratio: 9 / 20) and (max-aspect-ratio: 941 / 1672) {
-  .home-screen { height: 100%; aspect-ratio: auto; }
+  .home-screen {
+    width: min(100vw, calc((100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 941 / 1672));
+    width: min(100vw, calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 941 / 1672));
+    height: 100%;
+    aspect-ratio: auto;
+  }
   .home-art { object-fit: cover; object-position: top; }
 }
 
 .start-button {
   position: absolute;
-  left: 18.5%;
-  bottom: 8.3%;
-  display: grid;
-  place-items: center;
-  width: 63%;
-  aspect-ratio: 600 / 270;
-  padding: 0;
-  border: 0;
-  border-radius: 44%;
-  background: transparent;
-  color: #fffdf4;
-  filter: drop-shadow(0 10px 5px #076d9a88);
-  transition: transform .16s ease, filter .16s ease;
+  left: 50%;
+  bottom: 10.5%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3cqw;
+  width: 50%;
+  min-height: 15cqw;
+  padding: 6cqw 8cqw;
+  border: .45cqw solid #e9bfff;
+  border-radius: 999px;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 24% 12%, #ffe9ffeb 0%, #f6b6ff70 15%, transparent 43%),
+    radial-gradient(ellipse at 76% 83%, #df83ffb3 0%, transparent 48%),
+    radial-gradient(ellipse at 50% 40%, #c65cf3 10%, #a13ae0 48%, #7423bd 78%, #50118f 100%);
+  color: #fff;
+  box-shadow: inset 0 .6cqw 1cqw #fff3ff99, inset 0 -1.1cqw 1.6cqw #4d0b8e99, inset .7cqw 0 1.3cqw #f4bbff66, 0 .8cqw 1cqw #561a9270, 0 2cqw 3.5cqw #083f7166;
+  transform: translateX(-50%);
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.start-button-art {
+.start-button::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  z-index: -1;
+  top: 6%;
+  left: 10%;
+  width: 46%;
+  height: 29%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fffaff69, #ffe5ff00);
+  transform: rotate(-5deg);
+  pointer-events: none;
 }
 
-.start-button > span {
-  position: relative;
-  margin-top: -2%;
+.start-button-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 12cqw;
+  height: 12cqw;
+
+}
+
+.start-button-icon svg {
+  width: 12cqw;
+  height: 12cqw;
+  margin-left: .2cqw;
+}
+
+.start-button-label {
   font-family: 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif;
-  font-size: 12cqw;
-  font-weight: 1000;
+  font-size: 7cqw;
+  font-weight: 900;
   line-height: 1;
-  letter-spacing: -.04em;
-  -webkit-text-stroke: .9cqw #b9450c;
-  paint-order: stroke fill;
-  text-shadow: 0 .7cqw 0 #a83e0b, 0 1cqw 1cqw #bf600d80;
+  letter-spacing: -.02em;
+  text-shadow: 0 .35cqw .7cqw #491078a6;
 }
 
 @media (hover: hover) {
   .start-button:hover {
-    transform: translateY(-3px) scale(1.025);
-    filter: drop-shadow(0 13px 7px #076d9a88) brightness(1.06);
+    transform: translateX(-50%) translateY(-3px) scale(1.02);
+    filter: brightness(1.06);
   }
 }
 
 .start-button:active {
-  transform: translateY(4px) scale(.97);
-  filter: drop-shadow(0 4px 3px #076d9a88);
+  transform: translateX(-50%) translateY(1.4cqw) scale(.98);
+  filter: brightness(.98);
+  box-shadow: inset 0 .4cqw .8cqw #fff3ff80, inset 0 -.6cqw 1.2cqw #4d0b8e99, inset .7cqw 0 1.3cqw #f4bbff66, 0 .3cqw .7cqw #561a9266, 0 1cqw 2cqw #083f7155;
 }
 
 .start-button:focus-visible {

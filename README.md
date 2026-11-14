@@ -6,6 +6,8 @@ The page is in `index.html`, base styles are in `main.css`, the gameplay and mod
 
 The home screen uses `assets/home-scene.webp` with a separate, keyboard-accessible Start button. The artwork fills standard portrait phones, cropping only the decorative edges. Other aspect ratios keep the entire composition visible with a blurred extension filling the surrounding space. It is a compressed WebP of artwork generated with the built-in imagegen tool using the supplied reference.
 
+`dialogs.css` carries the home screen's glossy balloon styling into the completion and pause cards, primary and secondary buttons, and HUD controls. The completion screen reuses the pool scene and balloon WebP assets, including `b-victory.webp` for the result medal. Short screens hide the decorative result artwork and allow the dialog to scroll.
+
 Artwork prompt: Reproduce the reference's glossy 3D rainbow “COOL POP” logo, floating water-filled balloons, blue sky, tropical foliage, waterfall, and sparkling turquoise pool in a 9:16 portrait composition. Remove the orange Start button and replace that area with unobstructed water so an interactive HTML button can be overlaid. No other text or UI.
 
 ## Run locally
