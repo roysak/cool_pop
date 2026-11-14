@@ -35,7 +35,7 @@ body[data-screen="start"] #modalBackdrop::before {
 /* Fill common tall phones, cropping only the decorative scenery at the sides. */
 @media (min-aspect-ratio: 9 / 20) and (max-aspect-ratio: 941 / 1672) {
   .home-screen { height: 100%; aspect-ratio: auto; }
-  .home-art { object-fit: cover; }
+  .home-art { object-fit: cover; object-position: top; }
 }
 
 .start-button {

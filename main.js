@@ -316,10 +316,11 @@ const SoundFX = (() => {
 /*************************************************************************
  * 3. COOL WATER BALLOON & HAZARD PALETTES
  *************************************************************************/
-// Keep these softened colors in sync with the balloon material in splash.css.
+// Gameplay uses the supplied balloon artwork; palette colors drive splash FX and labels.
 const COOL_SAFE_PALETTES = [
   {
     name: 'Cool Cyan',
+    image: 'assets/balloons/b-cyan.webp',
     top: '#20D8DF',
     base: '#20BBDF',
     lip: '#2065DF',
@@ -329,6 +330,7 @@ const COOL_SAFE_PALETTES = [
   },
   {
     name: 'Ocean Blue',
+    image: 'assets/balloons/b-blue.webp',
     top: '#20BADF',
     base: '#336EE2',
     lip: '#491BBB',
@@ -337,7 +339,48 @@ const COOL_SAFE_PALETTES = [
     particle: '#336EE2'
   },
   {
+    name: 'Blue Green',
+    image: 'assets/balloons/b-blue-green.webp',
+    top: '#27D7C5',
+    base: '#18B9B0',
+    lip: '#087D83',
+    border: '#8DE7DD',
+    shadow: 'rgba(24, 185, 176, 0.34)',
+    particle: '#18B9B0'
+  },
+  {
+    name: 'Fresh Green',
+    image: 'assets/balloons/b-green.webp',
+    top: '#82DB42',
+    base: '#4FC12D',
+    lip: '#267E29',
+    border: '#A8E58D',
+    shadow: 'rgba(79, 193, 45, 0.34)',
+    particle: '#4FC12D'
+  },
+  {
+    name: 'Sunshine Yellow',
+    image: 'assets/balloons/b-yellow.webp',
+    top: '#F2E64B',
+    base: '#DFC620',
+    lip: '#A66D16',
+    border: '#F5E892',
+    shadow: 'rgba(223, 198, 32, 0.34)',
+    particle: '#DFC620'
+  },
+  {
+    name: 'Juicy Orange',
+    image: 'assets/balloons/b-orange.webp',
+    top: '#F7A944',
+    base: '#E77B22',
+    lip: '#A94718',
+    border: '#F4C58D',
+    shadow: 'rgba(231, 123, 34, 0.34)',
+    particle: '#E77B22'
+  },
+  {
     name: 'Soft Violet',
+    image: 'assets/balloons/b-purple.webp',
     top: '#D64FE6',
     base: '#A220DF',
     lip: '#5A19AE',
@@ -346,27 +389,30 @@ const COOL_SAFE_PALETTES = [
     particle: '#A220DF'
   },
   {
-    name: 'Lime Splash',
-    top: '#B4DF20',
-    base: '#62CE1D',
-    lip: '#159459',
-    border: '#70D8C8',
-    shadow: 'rgba(40, 164, 150, 0.34)',
-    particle: '#62CE1D'
+    name: 'Deep Indigo',
+    image: 'assets/balloons/b-indigo.webp',
+    top: '#7377EC',
+    base: '#5156D8',
+    lip: '#30328F',
+    border: '#AEB0F4',
+    shadow: 'rgba(81, 86, 216, 0.34)',
+    particle: '#5156D8'
   },
   {
-    name: 'Sunshine Yellow',
-    top: '#E4E444',
-    base: '#DFC620',
-    lip: '#D6971F',
-    border: '#A0C6F0',
-    shadow: 'rgba(82, 136, 223, 0.34)',
-    particle: '#DFC620'
+    name: 'Rose Pop',
+    image: 'assets/balloons/b-rose.webp',
+    top: '#F06BA8',
+    base: '#DE448B',
+    lip: '#9E2B68',
+    border: '#F4ACCD',
+    shadow: 'rgba(222, 68, 139, 0.34)',
+    particle: '#DE448B'
   }
 ];
 
 const HAZARD_PALETTE = {
   name: 'Crimson Hazard',
+  image: 'assets/balloons/b-red.webp',
   top: '#E75A71',
   base: '#E23350',
   lip: '#A6183C',
@@ -376,7 +422,14 @@ const HAZARD_PALETTE = {
 };
 
 const RAINBOW_COLORS = ['#E23350', '#DF8F20', '#DFC620', '#62CE1D', '#20BBDF', '#336EE2', '#A220DF'];
-const RAINBOW_PALETTE = { name: 'Rainbow', top: '#D64FE6', base: '#A220DF', lip: '#5A19AE', particle: RAINBOW_COLORS };
+const RAINBOW_PALETTE = {
+  name: 'Rainbow',
+  image: 'assets/balloons/b-rainbow.webp',
+  top: '#D64FE6',
+  base: '#A220DF',
+  lip: '#5A19AE',
+  particle: RAINBOW_COLORS
+};
 
 /*************************************************************************
  * 4. PARTICLE & FLOATING SCORE FX ENGINE (2D CANVAS)
@@ -728,7 +781,7 @@ const Game = (() => {
       speedBadge.classList.add('text-sky-600', 'scale-110');
       setTimeout(() => speedBadge.classList.remove('text-sky-600', 'scale-110'), 350);
     }
-    speedBadge.textContent = `LVL ${diff.level} • ${diff.speedMultiplierText}`;
+    speedBadge.textContent = `LVL ${diff.level}`;
   }
 
   /**
@@ -775,7 +828,8 @@ const Game = (() => {
     tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : 'tile-safe'}`;
     tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double your score' : `${palette.name} balloon — pop`);
 
-    // Tint the shared glossy balloon material with the game palette.
+    // Palette variables still support particle colors and the rainbow glow, while
+    // the visible balloon itself comes from assets/balloons.
     tileEl.style.setProperty('--balloon-top', palette.top);
     const hex = palette.base.slice(1);
     const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
@@ -785,18 +839,18 @@ const Game = (() => {
 
     // Inner SVG shrinking perimeter progress ring + center icon/pip
     const centerGraphic = isHazard
-      ? `<svg class="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
+      ? `<svg class="hazard w-6 h-6 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
       : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
       : `<div class="safe-pip pointer-events-none"></div>`;
 
     tileEl.innerHTML = `
-      <div class="tile-gloss"></div>
+      <img class="balloon-art" src="${palette.image}" alt="" aria-hidden="true" draggable="false">
       <svg class="tile-timer-ring" viewBox="0 0 44 44">
         <circle class="timer-circle" cx="22" cy="22" r="17"
                 fill="none"
-                stroke="rgba(255,255,255,0.58)"
+                stroke="rgba(255, 255, 255, 0.8)"
                 stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-dasharray="106.8"

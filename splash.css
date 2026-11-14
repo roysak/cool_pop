@@ -62,21 +62,21 @@ body[data-screen="pause"] #modalBackdrop { background: #f1ebfce0; backdrop-filte
 .result-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--pop-line); border-bottom: 1px solid var(--pop-line); padding: 17px 0; margin-bottom: 23px; gap: 5px; }.result-stats > div { display: flex; flex-direction: column; align-items: center; gap: 6px; }.result-stats > div > span { color: var(--pop-violet); height: 20px; font-size: 22px; line-height: 20px; }.result-stats strong { font-size: 17px; font-variant-numeric: tabular-nums; }.result-stats small { font-size: 9px; color: var(--pool-muted); }
 .quiet-button { border: 0; background: transparent; color: var(--pop-violet-deep); font-size: 11px; font-weight: 650; min-height: 44px; margin-top: 8px; padding: 8px 16px; }.quiet-button:hover { color: #891dc9; text-decoration: underline; }.save-notice { font-size: 9px; color: var(--pool-muted); margin: 0; }.pause-card { padding-top: 36px; }.pause-card .splash-button { margin-top: 28px; }.pause-symbol { display: grid; place-items: center; width: 70px; height: 70px; border-radius: 50%; background: #eee0fb; font-size: 28px; color: var(--pop-violet-deep); margin: 0 auto 22px; }
 /* Gameplay: the complete cell remains clickable, including the balloon knot. */
-.balloon-tile { position: absolute; inset: 0 2% 6%; cursor: pointer; padding: 0; pointer-events: auto; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(.25); transition: transform .18s cubic-bezier(.2,1.6,.4,1), opacity .14s; overflow: visible; touch-action: manipulation; }
+.balloon-tile { position: absolute; inset: 0 2% 6%; cursor: pointer; padding: 0; pointer-events: auto; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(.25); transition: transform .18s cubic-bezier(.2,1.6,.4,1), opacity .14s; overflow: visible; touch-action: manipulation; background: none; border: 0; border-radius: 0; box-shadow: none; }
 .balloon-tile.tile-active { opacity: 1; transform: scale(1); animation: balloon-wobble 2.4s ease-in-out infinite; }
 .balloon-tile::before { content: ''; position: absolute; inset: 0 0 -8%; border-radius: inherit; }
+.balloon-tile::after { display: none; }
+.balloon-art { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 7px 6px rgba(var(--balloon-dark), .28)); }
 .balloon-tile.tile-pressed { animation: balloon-pop .16s ease-out forwards; pointer-events: none; }
 .balloon-tile.tile-expired { transform: translateY(-8px) scale(.65); opacity: 0; pointer-events: none; animation: none; }
 .tile-hazard { --balloon-rgb: 230, 114, 131; --balloon-dark: 189, 44, 74; }
 .tile-rainbow {
   --balloon-rgb: 162, 32, 223; --balloon-dark: 90, 25, 174;
-  background: radial-gradient(ellipse at 28% 20%, #fffffff0, #ffffff30 15%, transparent 35%), linear-gradient(135deg, #e23350 5%, #df8f20 20%, #dfc620 34%, #62ce1d 47%, #20bbdf 61%, #336ee2 76%, #a220df 92%);
-  border-color: #8b31d5;
-  box-shadow: inset 2px 2px 3px #ffffffc9, inset -3px -5px 8px #5a19ae55, 0 0 0 2px #ffffffc9, 0 0 16px #a220df60;
+  filter: drop-shadow(0 0 8px #a220df80);
 }
-.tile-rainbow::after { background: linear-gradient(90deg, #20bbdf, #a220df, #e64fbd); }
 .rainbow-label { position: relative; z-index: 2; color: #fff; font-size: clamp(15px, 3.5vw, 23px); font-weight: 900; line-height: 1; text-shadow: 0 2px 2px #350c53, 0 0 5px #350c53; pointer-events: none; }
-.tile-timer-ring { position: absolute; inset: 8%; width: 84%; height: 84%; transform: rotate(-90deg); pointer-events: none; opacity: .8; }.tile-hazard > svg:last-child { color: #fff; filter: drop-shadow(0 1px 2px #87133b); }.tile-safe > .safe-pip { width: 6px; height: 6px; background: #ffffffc9; border-radius: 50%; }
+.hazard{left: 1%; top: 5%;}
+.tile-timer-ring { position: absolute; inset: 22% 16.5%; width: 72%; height: 72%; transform: rotate(-90deg); pointer-events: none; opacity: .8; }.tile-hazard > svg:last-child { color: #fff; filter: drop-shadow(0 1px 2px #87133b); }.tile-safe > .safe-pip { width: 6px; height: 6px; background: #ffffffc9; border-radius: 50%; }
 .arena-wrapper { gap: clamp(5px, 1.4vw, 10px); }.grid-cell { border-radius: 50%; background: radial-gradient(ellipse, #a220df0d 0%, #ffffff00 65%); }
 header .hud-glass { background: #fffffff0; border-color: #fff; border-radius: 22px; }.hud-glass .text-slate-900 { color: var(--pop-violet-deep); }#muteBtn, #pauseBtn { min-width: 40px; min-height: 40px; color: #253c86; background: linear-gradient(180deg, #effdfd, #a7e6f2); border-color: #7dd5ed; box-shadow: 0 3px 0 #5699ca, inset 0 2px 1px #fff; }footer { flex-direction: column-reverse; gap: 9px; padding-bottom: 8px !important; }footer > div:first-child { font-size: 8px; opacity: .65; }#liveRuleHint { font-size: 11px; color: var(--pool-muted); }#sdkStatusDot { width: 5px; height: 5px; }
 /* UI accents repeat the cyan, violet, lime, and yellow balloon colors. */
