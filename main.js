@@ -318,61 +318,64 @@ const SoundFX = (() => {
  *************************************************************************/
 const COOL_SAFE_PALETTES = [
   {
-    name: 'Icy Cyan',
-    top: '#22D3EE',
-    base: '#06B6D4',
-    lip: '#0E7490',
+    name: 'Electric Cyan',
+    top: '#00F5FF',
+    base: '#00CFFF',
+    lip: '#005CFF',
     border: '#67E8F9',
     shadow: 'rgba(6, 182, 212, 0.34)',
-    particle: '#06B6D4'
+    particle: '#00CFFF'
   },
   {
-    name: 'Azure Sky',
-    top: '#38BDF8',
-    base: '#0284C7',
-    lip: '#0369A1',
+    name: 'Electric Blue',
+    top: '#00CDFF',
+    base: '#1664FF',
+    lip: '#3D00D6',
     border: '#7DD3FC',
     shadow: 'rgba(2, 132, 199, 0.34)',
-    particle: '#0284C7'
+    particle: '#1664FF'
   },
   {
-    name: 'Soft Indigo',
-    top: '#818CF8',
-    base: '#6366F1',
-    lip: '#4338CA',
+    name: 'Neon Violet',
+    top: '#EA36FF',
+    base: '#AE00FF',
+    lip: '#5700C7',
     border: '#A5B4FC',
     shadow: 'rgba(99, 102, 241, 0.34)',
-    particle: '#6366F1'
+    particle: '#AE00FF'
   },
   {
-    name: 'Mint Teal',
-    top: '#2DD4BF',
-    base: '#14B8A6',
-    lip: '#0F766E',
+    name: 'Lime Splash',
+    top: '#C5FF00',
+    base: '#5CEB00',
+    lip: '#00A95A',
     border: '#5EEAD4',
     shadow: 'rgba(20, 184, 166, 0.34)',
-    particle: '#14B8A6'
+    particle: '#5CEB00'
   },
   {
-    name: 'Cool Periwinkle',
-    top: '#60A5FA',
-    base: '#3B82F6',
-    lip: '#1D4ED8',
+    name: 'Sunshine Yellow',
+    top: '#FFFF29',
+    base: '#FFDD00',
+    lip: '#F5A000',
     border: '#93C5FD',
     shadow: 'rgba(59, 130, 246, 0.34)',
-    particle: '#3B82F6'
+    particle: '#FFDD00'
   }
 ];
 
 const HAZARD_PALETTE = {
   name: 'Crimson Hazard',
-  top: '#FB7185',
-  base: '#F43F5E',
-  lip: '#BE123C',
+  top: '#FF4261',
+  base: '#FF163C',
+  lip: '#BE0030',
   border: '#FDA4AF',
   shadow: 'rgba(244, 63, 94, 0.42)',
   particle: '#F43F5E'
 };
+
+const RAINBOW_COLORS = ['#FF163C', '#FF9400', '#FFDD00', '#5CEB00', '#00CFFF', '#1664FF', '#AE00FF'];
+const RAINBOW_PALETTE = { name: 'Rainbow', top: '#EA36FF', base: '#AE00FF', lip: '#5700C7', particle: RAINBOW_COLORS };
 
 /*************************************************************************
  * 4. PARTICLE & FLOATING SCORE FX ENGINE (2D CANVAS)
@@ -397,13 +400,14 @@ const FXEngine = (() => {
   resize();
 
   function spawnBurst(x, y, color, isHazard = false) {
+    const colors = Array.isArray(color) ? color : [color];
     // The water first spreads as an irregular sheet, then separates into droplets.
     const radius = Math.min(65, window.innerWidth * 0.14);
-    splashes.push({ x, y, color, age: 0, radius,
+    splashes.push({ x, y, color: colors[0], age: 0, radius,
       lobes: Array.from({ length: 12 }, () => .65 + Math.random() * .55) });
     for (let i = 0; i < (reducedMotion.matches ? 1 : 2); i++) {
       ripples.push({ x, y, radius: 9 + i * 7, maxRadius: radius * (1.15 + i * .3),
-        alpha: .5 - i * .13, color, lineWidth: 2 - i * .5 });
+        alpha: .5 - i * .13, color: colors[i % colors.length], lineWidth: 2 - i * .5 });
     }
     const count = reducedMotion.matches ? 0 : (isHazard ? 23 : 19);
     for (let i = 0; i < count; i++) {
@@ -416,7 +420,7 @@ const FXEngine = (() => {
         vy: Math.sin(angle) * speed - 1.1,
         size: 2.5 + Math.random() * 4,
         alpha: .85,
-        color,
+        color: colors[i % colors.length],
         rotation: Math.random() * Math.PI,
         vRot: (Math.random() - 0.5) * 0.2
       });
@@ -550,6 +554,7 @@ const FXEngine = (() => {
 const Game = (() => {
   const TOTAL_CELLS = 36;
   const MAX_LIVES = 3;
+  const RAINBOW_CHANCE = 0.03; // 3% of safe spawns, once there is a score to double.
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
   const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
 
@@ -729,7 +734,7 @@ const Game = (() => {
   }
 
   /**
-   * Spawns a translucent water balloon in a random empty cell.
+   * Spawns a glossy water balloon in a random empty cell.
    */
   function spawnRandomTile() {
     const diff = getDifficultyParams();
@@ -751,10 +756,14 @@ const Game = (() => {
     const isHazard =
       currentHazards < Math.ceil(diff.maxSimultaneous * 0.45) &&
       Math.random() < diff.hazardChance;
+    const isRainbow = !isHazard && score > 0 &&
+      !Array.from(activeTiles.values()).some((tile) => tile.isRainbow) &&
+      Math.random() < RAINBOW_CHANCE;
 
     const cellIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
     const palette = isHazard
       ? HAZARD_PALETTE
+      : isRainbow ? RAINBOW_PALETTE
       : COOL_SAFE_PALETTES[Math.floor(Math.random() * COOL_SAFE_PALETTES.length)];
 
     // Red tiles stay slightly shorter so they clear out crisply
@@ -765,10 +774,11 @@ const Game = (() => {
     const uid = ++tileUidCounter;
     const tileEl = document.createElement('button');
     tileEl.type = 'button';
-    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : 'tile-safe'}`;
-    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : 'Cool balloon — pop');
+    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : 'tile-safe'}`;
+    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double your score' : `${palette.name} balloon — pop`);
 
-    // Tint the shared translucent balloon material with the game palette.
+    // Tint the shared glossy balloon material with the game palette.
+    tileEl.style.setProperty('--balloon-top', palette.top);
     const hex = palette.base.slice(1);
     const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
     tileEl.style.setProperty('--balloon-rgb', rgb);
@@ -780,6 +790,7 @@ const Game = (() => {
       ? `<svg class="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
+      : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
       : `<div class="safe-pip pointer-events-none"></div>`;
 
     tileEl.innerHTML = `
@@ -825,6 +836,7 @@ const Game = (() => {
       el: tileEl,
       timerCircle,
       isHazard,
+      isRainbow,
       palette,
       duration,
       elapsed: 0
@@ -873,7 +885,8 @@ const Game = (() => {
       const remainingRatio = Math.max(0, 1 - tile.elapsed / tile.duration);
       const speedBonus = Math.round(remainingRatio * 10);
       const multiplier = Math.min(8, 1 + Math.floor(combo / 5));
-      const pointsEarned = (15 + speedBonus) * multiplier;
+      // Rainbow pops double the existing total instead of awarding ordinary pop points.
+      const pointsEarned = tile.isRainbow ? score : (15 + speedBonus) * multiplier;
 
       score += pointsEarned;
       if (score > bestScore) {
@@ -881,13 +894,14 @@ const Game = (() => {
       }
 
       SoundFX.playSafeTap(combo);
+      if (tile.isRainbow) SoundFX.playSpeedUp();
       FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
       FXEngine.spawnFloatingText(
         centerX,
         centerY - 6,
-        multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
-        tile.palette.base,
-        multiplier > 2
+        tile.isRainbow ? `SCORE ×2! +${pointsEarned.toLocaleString()}` : multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
+        tile.isRainbow ? '#7200C7' : tile.palette.lip,
+        tile.isRainbow || multiplier > 2
       );
 
       updateHUD();
