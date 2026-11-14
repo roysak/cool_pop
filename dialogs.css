@@ -86,23 +86,25 @@ body[data-screen="over"] .corner-brand { display: none; }
   font-size: 10px;
   letter-spacing: 1.8px;
 }
-.result-art { height: 136px; width: 250px; max-width: 100%; margin: 12px auto 0; }
+.result-art { height: 166px; width: 250px; max-width: 100%; margin: 12px auto 0; }
 .result-balloon {
   position: absolute;
+  z-index: 0;
   width: 86px;
   height: 100px;
   object-fit: contain;
   filter: drop-shadow(0 5px 3px #337ba830);
   animation: balloon-float 4s ease-in-out infinite;
 }
-.result-balloon-left { left: 8px; top: 3px; --tilt: -20deg; transform: rotate(-20deg); animation-delay: -.6s; }
-.result-balloon-right { right: 8px; top: 0; --tilt: 19deg; transform: rotate(19deg); animation-duration: 4.6s; animation-delay: -2s; }
+.result-balloon-left { left: 12px; top: 25px; --tilt: -20deg; transform: rotate(-20deg); animation-delay: -.6s; }
+.result-balloon-right { right: 12px; top: 22px; --tilt: 19deg; transform: rotate(19deg); animation-duration: 4.6s; animation-delay: -2s; }
 .result-medal {
   position: absolute;
-  left: calc(50% - 75px);
+  z-index: 1;
+  left: calc(50% - 90px);
   top: 0;
-  width: 150px;
-  height: 137px;
+  width: 180px;
+  height: 165px;
   object-fit: contain;
   filter: drop-shadow(0 5px 5px #6f4d8530);
   transform: rotate(-7deg);
@@ -255,11 +257,11 @@ body[data-screen="over"] .corner-brand { display: none; }
 }
 @media (max-height: 880px) {
   .result-card { padding-top: 17px; padding-bottom: 15px; }
-  .result-art { height: 103px; margin-top: 24px; }
+  .result-art { height: 130px; margin-top: 24px; }
   .result-balloon { height: 80px; width: 70px; }
-  .result-balloon-left { left: 24px; }
-  .result-balloon-right { right: 24px; }
-  .result-medal { width: 112px; height: 103px; left: calc(50% - 56px); }
+  .result-balloon-left { left: 18px; top: 20px; }
+  .result-balloon-right { right: 18px; top: 18px; }
+  .result-medal { width: 142px; height: 130px; left: calc(50% - 71px); }
   .result-card .score-showcase { margin: 12px 0; padding: 8px; }
   #finalScoreText { font-size: 52px; }
   .result-stats { margin-bottom: 15px; gap: 7px; }

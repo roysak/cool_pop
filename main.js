@@ -484,6 +484,17 @@ const LIFE_PALETTE = {
   particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
 };
 
+// Warm every gameplay image while the player is on the start screen.
+// Keep the Image objects alive so browsers can reuse their decoded artwork.
+const preloadedBalloonImages = new Map();
+for (const palette of [...COOL_SAFE_PALETTES, HAZARD_PALETTE, RAINBOW_PALETTE, SLOW_PALETTE, LIFE_PALETTE]) {
+  if (preloadedBalloonImages.has(palette.image)) continue;
+  const image = new Image();
+  image.src = palette.image;
+  image.decode().catch(() => {});
+  preloadedBalloonImages.set(palette.image, image);
+}
+
 /*************************************************************************
  * 4. PARTICLE & FLOATING SCORE FX ENGINE (2D CANVAS)
  *************************************************************************/
@@ -905,6 +916,7 @@ const Game = (() => {
     const uid = ++tileUidCounter;
     const tileEl = document.createElement('button');
     tileEl.type = 'button';
+    tileEl.disabled = true;
     tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : isLife ? 'tile-safe tile-life' : 'tile-safe'}`;
     tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'White snail balloon — slow the game down' : isLife ? 'White heart balloon — restore one life, up to three' : `${palette.name} balloon — pop`);
 
@@ -967,13 +979,6 @@ const Game = (() => {
     const cellEl = cellElements[cellIndex];
     cellEl.appendChild(tileEl);
 
-    // Inflate the balloon on the next frame.
-    requestAnimationFrame(() => {
-      if (tileEl.isConnected) {
-        tileEl.classList.add('tile-active');
-      }
-    });
-
     activeTiles.set(cellIndex, {
       uid,
       cellIndex,
@@ -985,7 +990,23 @@ const Game = (() => {
       isLife,
       palette,
       duration,
-      elapsed: 0
+      elapsed: 0,
+      ready: false
+    });
+
+    // The icon and timer must never appear before the artwork is decoded.
+    tileEl.querySelector('.balloon-art').decode().then(() => {
+      requestAnimationFrame(() => {
+        const tile = activeTiles.get(cellIndex);
+        if (!tileEl.isConnected || tile?.uid !== uid) return;
+        tile.ready = true;
+        tileEl.disabled = false;
+        tileEl.classList.add('tile-active');
+      });
+    }).catch(() => {
+      if (activeTiles.get(cellIndex)?.uid !== uid) return;
+      activeTiles.delete(cellIndex);
+      tileEl.remove();
     });
   }
 
@@ -995,7 +1016,7 @@ const Game = (() => {
   function handleTileTap(cellIndex, uid) {
     if (state !== 'PLAYING') return;
     const tile = activeTiles.get(cellIndex);
-    if (!tile || tile.uid !== uid) return;
+    if (!tile || tile.uid !== uid || !tile.ready) return;
 
     // Remove from active map immediately so it cannot be double-tapped
     activeTiles.delete(cellIndex);
@@ -1275,6 +1296,7 @@ const Game = (() => {
       // Update active tiles and their shrinking SVG progress rings
       const circumference = 106.8;
       activeTiles.forEach((tile, cellIndex) => {
+        if (!tile.ready) return;
         tile.elapsed += dt;
         const progress = Math.min(1, tile.elapsed / tile.duration);
         if (tile.timerCircle) {
