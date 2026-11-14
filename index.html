@@ -3,11 +3,13 @@
 <head>
   <script src="https://www.youtube.com/game_api/v1"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Cool Pop &mdash; Make a splash</title>
 
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="splash.css">
+  <link rel="stylesheet" href="home.css">
+  <link rel="stylesheet" href="dialogs.css">
 </head>
 <body data-screen="start" class="relative flex flex-col items-center justify-between w-full h-full select-none overflow-hidden py-3 px-3 sm:py-5 sm:px-6">
 
@@ -32,25 +34,7 @@
   <header class="relative z-20 w-full max-w-[468px] flex flex-col gap-2">
     <!-- Primary HUD Pill -->
     <div class="hud-glass rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2">
-
-      <!-- Left: Score & Combo Badge -->
-      <div class="flex items-center gap-3 min-w-[115px]">
-        <div>
-          <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">
-            Score
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span id="scoreDisplay" class="font-mono-num text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">
-              0
-            </span>
-            <span id="comboBadge" class="hidden font-mono-num text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-700 border border-sky-200/80 transition-transform duration-150">
-              x1
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Center: 3 Lives Indicator + Speed Level -->
+      <!-- Left: 3 Lives Indicator + Speed Level -->
       <div class="flex flex-col items-center">
         <div id="livesContainer" class="flex items-center gap-1.5 sm:gap-2" aria-label="Lives Remaining">
           <!-- 3 Tactile Shield-Heart Icons populated/updated by JS -->
@@ -58,22 +42,12 @@
         <div class="mt-1 flex items-center gap-1.5">
           <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
           <span id="speedBadge" class="font-mono-num text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            LVL 1 • 1.0x
+            LVL 1
           </span>
         </div>
       </div>
-
-      <!-- Right: Best Score + Audio & Pause Controls -->
+      <!-- Right: Audio & Pause Controls -->
       <div class="flex items-center justify-end gap-1.5 sm:gap-2 min-w-[115px]">
-        <div class="text-right mr-1">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">
-            Best
-          </div>
-          <div id="bestScoreHud" class="font-mono-num text-sm sm:text-base font-bold text-slate-700 leading-none">
-            0
-          </div>
-        </div>
-
         <!-- Mute / Unmute Button -->
         <button id="muteBtn" type="button" aria-label="Toggle Sound"
                 class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 focus:outline-none">
@@ -93,6 +67,19 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
           </svg>
         </button>
+      </div>
+    </div>
+    <div class="score-strip" aria-label="Scoreboard">
+      <div class="score-strip-current">
+        <span class="score-strip-label">Score</span>
+        <div class="score-strip-value">
+          <span id="scoreDisplay" class="font-mono-num">0</span>
+          <span id="comboBadge" class="hidden font-mono-num text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-700 border border-sky-200/80 transition-transform duration-150">x1</span>
+        </div>
+      </div>
+      <div class="score-strip-best">
+        <span class="score-strip-label">Best score</span>
+        <span id="bestScoreHud" class="font-mono-num">0</span>
       </div>
     </div>
   </header>
@@ -128,57 +115,52 @@
     </div>
   </footer>
 
-  <!-- The artwork shares its balloon material with the playable targets. -->
+  <!-- The start screen keeps its artwork separate from the interactive button. -->
   <div id="modalBackdrop" class="fixed inset-0 z-50">
-    <section id="startModal" class="splash-card" role="dialog" aria-modal="true" aria-labelledby="startTitle">
-      <div class="edition-label"><span></span> A LITTLE POP. A LOT OF JOY.</div>
-      <h1 id="startTitle"><img src="cool-pop-title.png" alt="Cool Pop" width="1086" height="362"></h1>
-      <p class="screen-subtitle">Quick fingers. Cool splashes. One more round.</p>
-      <div class="balloon-scene" aria-hidden="true">
-        <div class="scene-orbit orbit-back"></div><div class="scene-orbit orbit-front"></div>
-        <span class="scene-spark spark-one">&#10022;</span><span class="scene-spark spark-two">&#10023;</span>
-        <span class="scene-drop drop-one"></span><span class="scene-drop drop-two"></span><span class="scene-drop drop-three"></span>
-        <div class="art-balloon balloon-lilac"><i class="balloon-shine"></i></div>
-        <div class="art-balloon balloon-mint"><i class="balloon-shine"></i></div>
-        <div class="art-balloon balloon-aqua"><i class="balloon-shine"></i><span class="balloon-face"><i></i><i></i><b></b></span></div>
-        <span class="scene-sticker">just add taps!</span>
-      </div>
-      <div class="rules-strip">
-        <div><span class="mini-balloon" aria-hidden="true"></span><span><strong>Pop the cool ones</strong><small>Tap fast. Build your combo.</small></span></div>
-        <div><span class="mini-balloon mini-hazard" aria-hidden="true">!</span><span><strong>Let red float by</strong><small>Red pops cost you a life.</small></span></div>
-        <div class="rainbow-rule"><span class="mini-balloon mini-rainbow" aria-hidden="true">×2</span><span><strong>Catch a rare rainbow</strong><small>Pop it to double your total score.</small></span></div>
-      </div>
-      <label for="strictMissToggle" class="mode-switch">
-        <span><strong>Feeling brave? <span class="mode-tag">HARD MODE</span></strong><small id="strictRuleDesc">Missed balloons only reset your combo.</small></span>
-        <span class="relative"><input type="checkbox" id="strictMissToggle" class="sr-only"><span class="toggle-track"></span></span>
-      </label>
-      <button id="startGameBtn" type="button" class="splash-button"><span class="play-triangle" aria-hidden="true"></span>Let's splash<span aria-hidden="true">&#8599;</span></button>
-      <div class="card-footnote"><span class="best-icon" aria-hidden="true">&#9819;</span> Personal best <strong id="startBestScore">0</strong><span class="footnote-dot">&middot;</span> 3 lives. Make them count.</div>
+    <section id="startModal" class="home-screen" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+      <h1 id="startTitle" class="sr-only">Cool Pop</h1>
+      <img class="home-art" src="assets/home-scene.webp" alt="" width="459" height="1024" fetchpriority="high" draggable="false">
+      <button id="startGameBtn" type="button" class="start-button" aria-label="Start game">
+        <span class="start-button-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M8.5 6.2v11.6L18 12 8.5 6.2Z" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="start-button-label">Start</span>
+      </button>
     </section>
 
     <section id="pauseModal" class="hidden splash-card pause-card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
-      <div class="pause-symbol" aria-hidden="true">&#8545;</div>
+      <div class="pause-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="2"/><rect x="14" y="4" width="5" height="16" rx="2"/></svg></div>
       <div class="edition-label">A MOMENT OF CALM</div>
       <h2 id="pauseTitle">Catch your breath.</h2>
       <p class="screen-subtitle">Your next splash can wait.</p>
-      <button id="resumeGameBtn" type="button" class="splash-button">Keep splashing <span aria-hidden="true">&#8599;</span></button>
-      <button id="restartFromPauseBtn" type="button" class="quiet-button">Start a fresh round</button>
+      <label for="strictMissToggle" class="mode-switch">
+        <span><strong>Hard mode</strong><small id="strictRuleDesc">Missed balloons only reset your combo.</small></span>
+        <span class="relative"><input type="checkbox" id="strictMissToggle" class="sr-only" aria-describedby="strictRuleDesc"><span class="toggle-track"></span></span>
+      </label>
+      <button id="resumeGameBtn" type="button" class="splash-button"><svg class="button-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg>Keep splashing</button>
+      <button id="restartFromPauseBtn" type="button" class="quiet-button home-button">Start a fresh round</button>
       <button type="button" class="quiet-button home-button">Back to the pool</button>
     </section>
 
     <section id="gameOverModal" class="hidden splash-card result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
-      <div id="gameOverBadge" class="edition-label">ALL SPLASHED OUT</div>
-      <div class="result-art" aria-hidden="true"><div class="scene-orbit"></div><span class="scene-spark">&#10022;</span><div class="art-balloon trophy-balloon"><i class="balloon-shine"></i><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 9h18v12c0 12-18 12-18 0V9ZM15 13H8v5c0 6 4 9 9 9m16-14h7v5c0 6-4 9-9 9M24 31v8m-8 2h16" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="scene-drop"></span></div>
+      <div class="result-art" aria-hidden="true">
+        <img class="result-balloon result-balloon-left" src="assets/balloons/b-cyan.webp" alt="" width="100" height="120" draggable="false">
+        <img class="result-balloon result-balloon-right" src="assets/balloons/b-purple.webp" alt="" width="100" height="120" draggable="false">
+        <img class="result-medal" src="assets/balloons/b-victory.webp" alt="" width="1312" height="1199" draggable="false">
+        <span class="result-spark spark-left">&#10022;</span><span class="result-spark spark-right">&#10022;</span>
+      </div>
       <h2 id="resultTitle">You made waves!</h2>
       <p id="resultMessage" class="screen-subtitle">A little practice. A bigger splash.</p>
       <div class="score-showcase"><span class="score-label">YOUR SCORE</span><div id="finalScoreText">0</div><div id="newRecordBadge" class="hidden record-badge">&#10022; A new personal best!</div></div>
       <div class="result-stats">
-        <div><span aria-hidden="true">&#9819;</span><strong id="summaryBestScore">0</strong><small>Personal best</small></div>
-        <div><span aria-hidden="true">&#991;</span><strong id="summaryMaxCombo">0</strong><small>Best streak</small></div>
-        <div><span aria-hidden="true">&#9678;</span><strong id="summaryAccuracy">0%</strong><small>Pop accuracy</small></div>
-        <div><span aria-hidden="true">&#8599;</span><strong id="summaryPeakSpeed">LVL 1</strong><small>Peak speed</small></div>
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 4 4 5-6 5 6 4-4-2 13H5Z"/><path d="M6 16h12"/></svg><strong id="summaryBestScore">0</strong><small>Personal best</small></div>
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 3-9 11h6l-1 7 9-11h-6Z"/></svg><strong id="summaryMaxCombo">0</strong><small>Best streak</small></div>
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg><strong id="summaryAccuracy">0%</strong><small>Pop accuracy</small></div>
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a9 9 0 1 1 16 0M12 13l4-5M5 18h14"/><circle cx="12" cy="13" r="1"/></svg><strong id="summaryPeakSpeed">LVL 1</strong><small>Peak speed</small></div>
       </div>
-      <button id="playAgainBtn" type="button" class="splash-button"><span aria-hidden="true">&#8635;</span>One more splash<span aria-hidden="true">&#8599;</span></button>
+      <button id="playAgainBtn" type="button" class="splash-button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></svg>Play again</button>
       <button type="button" class="quiet-button home-button">Back to the pool</button>
       <p id="sdkScoreSubmittedNotice" class="save-notice">Personal best saved on this device</p>
     </section>
