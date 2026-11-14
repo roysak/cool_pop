@@ -455,12 +455,20 @@ const RAINBOW_PALETTE = {
 };
 
 const SLOW_PALETTE = {
-  name: 'Frost',
-  image: 'assets/balloons/b-blue.webp',
-  top: '#8CEBFF',
-  base: '#35C9F2',
-  lip: '#155A9B',
-  particle: ['#B9F5FF', '#5EDBF4', '#FFFFFF']
+  name: 'Slowdown',
+  image: 'assets/balloons/b-white.webp',
+  top: '#F7F8FF',
+  base: '#DCE5F2',
+  lip: '#8B9DBA',
+  particle: ['#FFFFFF', '#DCE5F2', '#A9C3E3']
+};
+const LIFE_PALETTE = {
+  name: 'Extra Life',
+  image: 'assets/balloons/b-white.webp',
+  top: '#FFF7FA',
+  base: '#F2DCE6',
+  lip: '#D43157',
+  particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
 };
 
 /*************************************************************************
@@ -653,6 +661,8 @@ const Game = (() => {
   const SLOW_CHANCE = 0.035;
   const SLOW_RELIEF_MS = 17000; // Rewind one speed level; the ramp resumes from there.
   const SLOW_SPAWN_COOLDOWN_MS = 25000;
+  const LIFE_CHANCE = 0.035;
+  const LIFE_SPAWN_COOLDOWN_MS = 30000;
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
   const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
 
@@ -703,6 +713,7 @@ const Game = (() => {
   let elapsedPlayTimeMs = 0;
   let difficultyTimeMs = 0;
   let lastSlowSpawnAtMs = -SLOW_SPAWN_COOLDOWN_MS;
+  let lastLifeSpawnAtMs = -LIFE_SPAWN_COOLDOWN_MS;
   let lastFrameTime = performance.now();
   let spawnAccumulatorMs = 0;
   let tileUidCounter = 0;
@@ -858,12 +869,18 @@ const Game = (() => {
       !Array.from(activeTiles.values()).some((tile) => tile.isSlow) &&
       Math.random() < SLOW_CHANCE;
     if (isSlow) lastSlowSpawnAtMs = elapsedPlayTimeMs;
+    const isLife = !isHazard && !isRainbow && !isSlow &&
+      elapsedPlayTimeMs - lastLifeSpawnAtMs >= LIFE_SPAWN_COOLDOWN_MS &&
+      !Array.from(activeTiles.values()).some((tile) => tile.isLife) &&
+      Math.random() < LIFE_CHANCE;
+    if (isLife) lastLifeSpawnAtMs = elapsedPlayTimeMs;
 
     const cellIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
     const palette = isHazard
       ? HAZARD_PALETTE
       : isRainbow ? RAINBOW_PALETTE
       : isSlow ? SLOW_PALETTE
+      : isLife ? LIFE_PALETTE
       : COOL_SAFE_PALETTES[Math.floor(Math.random() * COOL_SAFE_PALETTES.length)];
 
     // Red tiles stay slightly shorter so they clear out crisply
@@ -874,8 +891,8 @@ const Game = (() => {
     const uid = ++tileUidCounter;
     const tileEl = document.createElement('button');
     tileEl.type = 'button';
-    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : 'tile-safe'}`;
-    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'Frost balloon — slow the game down' : `${palette.name} balloon — pop`);
+    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : isLife ? 'tile-safe tile-life' : 'tile-safe'}`;
+    tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'White snail balloon — slow the game down' : isLife ? 'White heart balloon — restore one life, up to three' : `${palette.name} balloon — pop`);
 
     // Palette variables still support particle colors and the rainbow glow, while
     // the visible balloon itself comes from assets/balloons.
@@ -892,7 +909,18 @@ const Game = (() => {
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
       : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
-      : isSlow ? `<span class="slow-label" aria-hidden="true">❄</span>`
+      : isSlow ? `<svg class="slow-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M4 24.5h19.5c2.5 0 4.5-2 4.5-4.5v-4.5c0-2-1.5-3.5-3.5-3.5S21 13.5 21 15.5V18" />
+          <path d="M24.5 12V7.5m3.5 5V9" />
+          <circle cx="24.5" cy="7" r="1" fill="currentColor" stroke="none" />
+          <circle cx="28" cy="8.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12.5" cy="17.5" r="6.5" />
+          <path d="M12.5 14.5a3 3 0 1 1-3 3 1.5 1.5 0 0 1 3 0" />
+        </svg>`
+      : isLife ? `<svg class="life-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21 3.8 12.7A5 5 0 0 1 11 5.8L12 6.8l1-1a5 5 0 0 1 7.2 6.9Z" fill="currentColor" />
+          <path d="M12 9v7m-3.5-3.5h7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
+        </svg>`
       : `<div class="safe-pip pointer-events-none"></div>`;
 
     tileEl.innerHTML = `
@@ -940,6 +968,7 @@ const Game = (() => {
       isHazard,
       isRainbow,
       isSlow,
+      isLife,
       palette,
       duration,
       elapsed: 0
@@ -978,6 +1007,16 @@ const Game = (() => {
 
       triggerHazardFeedback();
       deductLife();
+    } else if (tile.isLife) {
+      SoundFX.playSafeTap(combo);
+      FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
+      if (lives < MAX_LIVES) {
+        lives++;
+        renderLives();
+        FXEngine.spawnFloatingText(centerX, centerY - 6, '+1 LIFE!', '#D43157', true);
+      } else {
+        FXEngine.spawnFloatingText(centerX, centerY - 6, 'LIVES FULL', '#D43157', false);
+      }
     } else {
       // TAPPED COOL SAFE TILE -> SCORE POINTS & BUILD COMBO!
       safeTappedCount++;
@@ -1027,7 +1066,7 @@ const Game = (() => {
       if (tile.el.isConnected) tile.el.remove();
     }, 170);
 
-    if (!tile.isHazard) {
+    if (!tile.isHazard && !tile.isLife) {
       // Player missed a safe tile
       safeMissedCount++;
       if (combo > 0) {
@@ -1104,6 +1143,7 @@ const Game = (() => {
     elapsedPlayTimeMs = 0;
     difficultyTimeMs = 0;
     lastSlowSpawnAtMs = -SLOW_SPAWN_COOLDOWN_MS;
+    lastLifeSpawnAtMs = -LIFE_SPAWN_COOLDOWN_MS;
     spawnAccumulatorMs = 500; // Spawn first tile quickly
 
     renderLives();
