@@ -3,11 +3,12 @@
 <head>
   <script src="https://www.youtube.com/game_api/v1"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Cool Pop &mdash; Make a splash</title>
 
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="splash.css">
+  <link rel="stylesheet" href="home.css">
 </head>
 <body data-screen="start" class="relative flex flex-col items-center justify-between w-full h-full select-none overflow-hidden py-3 px-3 sm:py-5 sm:px-6">
 
@@ -32,8 +33,19 @@
   <header class="relative z-20 w-full max-w-[468px] flex flex-col gap-2">
     <!-- Primary HUD Pill -->
     <div class="hud-glass rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2">
-
-      <!-- Left: Score & Combo Badge -->
+      <!-- Left: 3 Lives Indicator + Speed Level -->
+      <div class="flex flex-col items-center">
+        <div id="livesContainer" class="flex items-center gap-1.5 sm:gap-2" aria-label="Lives Remaining">
+          <!-- 3 Tactile Shield-Heart Icons populated/updated by JS -->
+        </div>
+        <div class="mt-1 flex items-center gap-1.5">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+          <span id="speedBadge" class="font-mono-num text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            LVL 1 • 1.0x
+          </span>
+        </div>
+      </div>
+      <!-- Center: Score & Combo Badge -->
       <div class="flex items-center gap-3 min-w-[115px]">
         <div>
           <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">
@@ -49,19 +61,7 @@
           </div>
         </div>
       </div>
-
-      <!-- Center: 3 Lives Indicator + Speed Level -->
-      <div class="flex flex-col items-center">
-        <div id="livesContainer" class="flex items-center gap-1.5 sm:gap-2" aria-label="Lives Remaining">
-          <!-- 3 Tactile Shield-Heart Icons populated/updated by JS -->
-        </div>
-        <div class="mt-1 flex items-center gap-1.5">
-          <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
-          <span id="speedBadge" class="font-mono-num text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            LVL 1 • 1.0x
-          </span>
-        </div>
-      </div>
+     
 
       <!-- Right: Best Score + Audio & Pause Controls -->
       <div class="flex items-center justify-end gap-1.5 sm:gap-2 min-w-[115px]">
@@ -128,32 +128,39 @@
     </div>
   </footer>
 
-  <!-- The artwork shares its balloon material with the playable targets. -->
+  <!-- The start screen keeps its artwork separate from the interactive button. -->
   <div id="modalBackdrop" class="fixed inset-0 z-50">
-    <section id="startModal" class="splash-card" role="dialog" aria-modal="true" aria-labelledby="startTitle">
-      <div class="edition-label"><span></span> A LITTLE POP. A LOT OF JOY.</div>
-      <h1 id="startTitle"><img src="cool-pop-title.png" alt="Cool Pop" width="1086" height="362"></h1>
-      <p class="screen-subtitle">Quick fingers. Cool splashes. One more round.</p>
-      <div class="balloon-scene" aria-hidden="true">
-        <div class="scene-orbit orbit-back"></div><div class="scene-orbit orbit-front"></div>
-        <span class="scene-spark spark-one">&#10022;</span><span class="scene-spark spark-two">&#10023;</span>
-        <span class="scene-drop drop-one"></span><span class="scene-drop drop-two"></span><span class="scene-drop drop-three"></span>
-        <div class="art-balloon balloon-lilac"><i class="balloon-shine"></i></div>
-        <div class="art-balloon balloon-mint"><i class="balloon-shine"></i></div>
-        <div class="art-balloon balloon-aqua"><i class="balloon-shine"></i><span class="balloon-face"><i></i><i></i><b></b></span></div>
-        <span class="scene-sticker">just add taps!</span>
-      </div>
-      <div class="rules-strip">
-        <div><span class="mini-balloon" aria-hidden="true"></span><span><strong>Pop the cool ones</strong><small>Tap fast. Build your combo.</small></span></div>
-        <div><span class="mini-balloon mini-hazard" aria-hidden="true">!</span><span><strong>Let red float by</strong><small>Red pops cost you a life.</small></span></div>
-        <div class="rainbow-rule"><span class="mini-balloon mini-rainbow" aria-hidden="true">×2</span><span><strong>Catch a rare rainbow</strong><small>Pop it to double your total score.</small></span></div>
-      </div>
-      <label for="strictMissToggle" class="mode-switch">
-        <span><strong>Feeling brave? <span class="mode-tag">HARD MODE</span></strong><small id="strictRuleDesc">Missed balloons only reset your combo.</small></span>
-        <span class="relative"><input type="checkbox" id="strictMissToggle" class="sr-only"><span class="toggle-track"></span></span>
-      </label>
-      <button id="startGameBtn" type="button" class="splash-button"><span class="play-triangle" aria-hidden="true"></span>Let's splash<span aria-hidden="true">&#8599;</span></button>
-      <div class="card-footnote"><span class="best-icon" aria-hidden="true">&#9819;</span> Personal best <strong id="startBestScore">0</strong><span class="footnote-dot">&middot;</span> 3 lives. Make them count.</div>
+    <section id="startModal" class="home-screen" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+      <h1 id="startTitle" class="sr-only">Cool Pop</h1>
+      <img class="home-art" src="assets/home-scene.webp" alt="" width="941" height="1672" fetchpriority="high" draggable="false">
+      <button id="startGameBtn" type="button" class="start-button" aria-label="Start game">
+        <svg class="start-button-art" viewBox="0 0 600 270" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="startCandy" x2="0" y2="1">
+              <stop stop-color="#ffff72"/><stop offset=".24" stop-color="#ffdb00"/><stop offset=".65" stop-color="#ff9c00"/><stop offset="1" stop-color="#ffc52c"/>
+            </linearGradient>
+            <linearGradient id="startRim" x2="0" y2="1">
+              <stop stop-color="#fffca2"/><stop offset=".55" stop-color="#fff391"/><stop offset="1" stop-color="#ff9916"/>
+            </linearGradient>
+            <radialGradient id="startGlow">
+              <stop stop-color="#fff82d"/><stop offset="1" stop-color="#ffd500" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="startDrop" x2=".8" y2="1">
+              <stop stop-color="#fff"/><stop offset=".4" stop-color="#fff5a1" stop-opacity=".4"/><stop offset="1" stop-color="#fff"/>
+            </linearGradient>
+          </defs>
+          <path d="M18 125C25 39 83 7 146 18C215 30 241 52 302 46C365 41 397 10 461 16C543 22 583 67 585 136C587 205 539 253 467 251C401 249 364 229 300 231C235 231 185 258 122 253C52 248 11 201 18 125Z" fill="#f18a08"/>
+          <path d="M19 117C26 31 84 3 147 14C216 26 242 48 302 42C366 37 397 6 461 12C543 18 581 59 582 128C584 197 538 244 467 242C401 240 364 220 300 222C235 222 185 249 122 244C52 239 12 193 19 117Z" fill="url(#startCandy)" stroke="url(#startRim)" stroke-width="7"/>
+          <ellipse cx="303" cy="87" rx="248" ry="71" fill="url(#startGlow)"/>
+          <path d="M38 124C36 183 66 226 125 231C183 239 242 210 300 210C367 208 407 231 470 229C527 228 558 196 565 155" fill="none" stroke="#fff68e" stroke-width="5" stroke-linecap="round" opacity=".75"/>
+          <ellipse cx="110" cy="52" rx="48" ry="17" transform="rotate(-23 110 52)" fill="#ffffed"/>
+          <ellipse cx="480" cy="47" rx="34" ry="12" transform="rotate(20 480 47)" fill="#fffde2"/>
+          <path d="M62 146C62 164 42 179 45 193C50 215 83 207 83 190C83 177 66 163 62 146Z" fill="url(#startDrop)" stroke="#fff7b4" stroke-width="2"/>
+          <path d="M530 53C532 69 516 81 519 93C522 108 547 104 547 91C548 80 535 68 530 53Z" fill="url(#startDrop)" stroke="#fff7b4" stroke-width="2"/>
+          <circle cx="103" cy="211" r="7" fill="url(#startDrop)" stroke="#fffaab" stroke-width="2"/>
+        </svg>
+        <span>START</span>
+      </button>
     </section>
 
     <section id="pauseModal" class="hidden splash-card pause-card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
@@ -161,6 +168,10 @@
       <div class="edition-label">A MOMENT OF CALM</div>
       <h2 id="pauseTitle">Catch your breath.</h2>
       <p class="screen-subtitle">Your next splash can wait.</p>
+      <label for="strictMissToggle" class="mode-switch">
+        <span><strong>Hard mode</strong><small id="strictRuleDesc">Missed balloons only reset your combo.</small></span>
+        <span class="relative"><input type="checkbox" id="strictMissToggle" class="sr-only" aria-describedby="strictRuleDesc"><span class="toggle-track"></span></span>
+      </label>
       <button id="resumeGameBtn" type="button" class="splash-button">Keep splashing <span aria-hidden="true">&#8599;</span></button>
       <button id="restartFromPauseBtn" type="button" class="quiet-button">Start a fresh round</button>
       <button type="button" class="quiet-button home-button">Back to the pool</button>

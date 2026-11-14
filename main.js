@@ -553,7 +553,7 @@ const FXEngine = (() => {
  * 5. CORE GAME CONTROLLER (6x6 INVISIBLE GRID + PROGRESSIVE DIFFICULTY)
  *************************************************************************/
 const Game = (() => {
-  const TOTAL_CELLS = 36;
+  const TOTAL_CELLS = 25;
   const MAX_LIVES = 3;
   const RAINBOW_CHANCE = 0.03; // 3% of safe spawns, once there is a score to double.
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
@@ -566,7 +566,6 @@ const Game = (() => {
   const livesContainer = document.getElementById('livesContainer');
   const speedBadge = document.getElementById('speedBadge');
   const bestScoreHud = document.getElementById('bestScoreHud');
-  const startBestScore = document.getElementById('startBestScore');
   const strictMissToggle = document.getElementById('strictMissToggle');
   const strictRuleDesc = document.getElementById('strictRuleDesc');
   const liveRuleHint = document.getElementById('liveRuleHint');
@@ -629,7 +628,6 @@ const Game = (() => {
       bestScore = 0;
     }
     bestScoreHud.textContent = bestScore.toLocaleString();
-    startBestScore.textContent = bestScore.toLocaleString();
   }
 
   function saveBestScore(newBest) {
@@ -639,7 +637,6 @@ const Game = (() => {
     } catch (e) {}
     YTPlayables.saveCloudData(bestScore);
     bestScoreHud.textContent = bestScore.toLocaleString();
-    startBestScore.textContent = bestScore.toLocaleString();
   }
 
   // Build the 36 completely invisible cells in the 6x6 grid
@@ -987,10 +984,7 @@ const Game = (() => {
     });
     activeTiles.clear();
 
-    strictMissMode = strictMissToggle.checked;
-    liveRuleHint.innerHTML = strictMissMode
-      ? 'Hard mode • <span class="text-rose-500">Red pops &amp; misses cost a life</span>'
-      : 'Pop cool balloons • <span class="text-rose-500">Let red float by</span>';
+    syncDifficulty();
 
     score = 0;
     lives = MAX_LIVES;
@@ -1130,6 +1124,16 @@ const Game = (() => {
     requestAnimationFrame(tick);
   }
 
+  function syncDifficulty() {
+    strictMissMode = strictMissToggle.checked;
+    strictRuleDesc.textContent = strictMissMode
+      ? 'Miss a cool balloon and lose a life, too.'
+      : 'Missed balloons only reset your combo.';
+    liveRuleHint.innerHTML = strictMissMode
+      ? 'Hard mode • <span class="text-rose-500">Red pops &amp; misses cost a life</span>'
+      : 'Pop cool balloons • <span class="text-rose-500">Let red float by</span>';
+  }
+
   // Wire UI Controls & Listeners
   function bindEvents() {
     document.querySelectorAll('.home-button').forEach((button) => button.addEventListener('click', () => {
@@ -1171,11 +1175,7 @@ const Game = (() => {
       syncAudioIcons();
     });
 
-    strictMissToggle.addEventListener('change', () => {
-      strictRuleDesc.textContent = strictMissToggle.checked
-        ? 'Miss a cool balloon and lose a life, too.'
-        : 'Missed balloons only reset your combo.';
-    });
+    strictMissToggle.addEventListener('change', syncDifficulty);
 
     // Keyboard shortcut (Space/Enter to start or resume, Escape/P to pause)
     // NOTE: Never call e.preventDefault() on Escape per YouTube Playables certification rules

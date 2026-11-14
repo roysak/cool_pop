@@ -1,0 +1,99 @@
+/* Keep the logo, balloons and button together at the artwork's native ratio. */
+body[data-screen="start"] #modalBackdrop {
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #39c2f2;
+}
+
+body[data-screen="start"] #modalBackdrop::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -24px;
+  background: url('assets/home-scene.webp') center / cover no-repeat;
+  filter: blur(20px);
+}
+
+.home-screen {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100vw, calc((100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 941 / 1672));
+  width: min(100vw, calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 941 / 1672));
+  aspect-ratio: 941 / 1672;
+  container-type: inline-size;
+}
+
+.home-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Fill common tall phones, cropping only the decorative scenery at the sides. */
+@media (min-aspect-ratio: 9 / 20) and (max-aspect-ratio: 941 / 1672) {
+  .home-screen { height: 100%; aspect-ratio: auto; }
+  .home-art { object-fit: cover; }
+}
+
+.start-button {
+  position: absolute;
+  left: 18.5%;
+  bottom: 8.3%;
+  display: grid;
+  place-items: center;
+  width: 63%;
+  aspect-ratio: 600 / 270;
+  padding: 0;
+  border: 0;
+  border-radius: 44%;
+  background: transparent;
+  color: #fffdf4;
+  filter: drop-shadow(0 10px 5px #076d9a88);
+  transition: transform .16s ease, filter .16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-button-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.start-button > span {
+  position: relative;
+  margin-top: -2%;
+  font-family: 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif;
+  font-size: 12cqw;
+  font-weight: 1000;
+  line-height: 1;
+  letter-spacing: -.04em;
+  -webkit-text-stroke: .9cqw #b9450c;
+  paint-order: stroke fill;
+  text-shadow: 0 .7cqw 0 #a83e0b, 0 1cqw 1cqw #bf600d80;
+}
+
+@media (hover: hover) {
+  .start-button:hover {
+    transform: translateY(-3px) scale(1.025);
+    filter: drop-shadow(0 13px 7px #076d9a88) brightness(1.06);
+  }
+}
+
+.start-button:active {
+  transform: translateY(4px) scale(.97);
+  filter: drop-shadow(0 4px 3px #076d9a88);
+}
+
+.start-button:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start-button { transition: none; }
+}
