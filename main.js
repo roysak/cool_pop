@@ -127,16 +127,13 @@ const YTPlayables = (() => {
 
 /*************************************************************************
  * 2. SYNTHESIZED WEB AUDIO API SOUND ENGINE
- *    Crisp glassy marimba pops for safe tiles, low buzz/thud for red tiles,
- *    and harmonic level-up chimes. Zero external audio assets needed.
+ *    Can-opening pops and water splashes for safe tiles, low buzz/thud for
+ *    red tiles, and harmonic level-up chimes. Zero external audio assets needed.
  *************************************************************************/
 const SoundFX = (() => {
   let ctx = null;
   let userMuted = false;
   let platformAudioEnabled = true;
-
-  // Pentatonic cool frequencies for combo progression
-  const COMBO_SCALE = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51];
 
   function ensureContext() {
     if (!ctx) {
@@ -152,61 +149,77 @@ const SoundFX = (() => {
     return !userMuted && platformAudioEnabled;
   }
 
-  function playSafeTap(comboCount = 1) {
+  function playSafeTap() {
     if (!canPlay()) return;
     ensureContext();
     if (!ctx) return;
 
     const now = ctx.currentTime;
-    const noteIndex = Math.min(comboCount - 1, COMBO_SCALE.length - 1);
-    const baseFreq = COMBO_SCALE[Math.max(0, noteIndex)];
-
-    // A short filtered rush of water beneath the pitched pop.
-    const water = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.15), ctx.sampleRate);
-    const samples = water.getChannelData(0);
+    const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.22), ctx.sampleRate);
+    const samples = noise.getChannelData(0);
     for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
-    const spray = ctx.createBufferSource();
-    const filter = ctx.createBiquadFilter();
-    const sprayGain = ctx.createGain();
-    spray.buffer = water;
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(3800, now);
-    filter.frequency.exponentialRampToValueAtTime(650, now + 0.15);
-    sprayGain.gain.setValueAtTime(0.11, now);
-    sprayGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    spray.connect(filter);
-    filter.connect(sprayGain);
-    sprayGain.connect(ctx.destination);
-    spray.start(now);
 
-    // Primary sine-triangle glassy pop
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(baseFreq * 0.92, now);
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.18, now + 0.065);
+    // The sharp tab click and fizz give the pop a can-opening edge.
+    const click = ctx.createBufferSource();
+    const clickFilter = ctx.createBiquadFilter();
+    const clickGain = ctx.createGain();
+    click.buffer = noise;
+    clickFilter.type = 'highpass';
+    clickFilter.frequency.setValueAtTime(2400, now);
+    clickGain.gain.setValueAtTime(0.28, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    click.connect(clickFilter);
+    clickFilter.connect(clickGain);
+    clickGain.connect(ctx.destination);
+    click.start(now);
+    click.stop(now + 0.03);
 
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.22, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.17);
+    const fizz = ctx.createBufferSource();
+    const fizzFilter = ctx.createBiquadFilter();
+    const fizzGain = ctx.createGain();
+    fizz.buffer = noise;
+    fizzFilter.type = 'bandpass';
+    fizzFilter.frequency.setValueAtTime(1700, now);
+    fizzFilter.Q.setValueAtTime(0.7, now);
+    fizzGain.gain.setValueAtTime(0.001, now);
+    fizzGain.gain.linearRampToValueAtTime(0.11, now + 0.018);
+    fizzGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    fizz.connect(fizzFilter);
+    fizzFilter.connect(fizzGain);
+    fizzGain.connect(ctx.destination);
+    fizz.start(now);
+    fizz.stop(now + 0.13);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.18);
+    // A descending thump reads as the balloon bursting beneath the fizz.
+    const pop = ctx.createOscillator();
+    const popGain = ctx.createGain();
+    pop.type = 'triangle';
+    pop.frequency.setValueAtTime(260, now);
+    pop.frequency.exponentialRampToValueAtTime(90, now + 0.095);
+    popGain.gain.setValueAtTime(0.001, now);
+    popGain.gain.linearRampToValueAtTime(0.22, now + 0.006);
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.105);
+    pop.connect(popGain);
+    popGain.connect(ctx.destination);
+    pop.start(now);
+    pop.stop(now + 0.11);
 
-    // Harmonic sparkle overtone
-    const over = ctx.createOscillator();
-    const overGain = ctx.createGain();
-    over.type = 'sine';
-    over.frequency.setValueAtTime(baseFreq * 2, now);
-    overGain.gain.setValueAtTime(0.08, now);
-    overGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.11);
-
-    over.connect(overGain);
-    overGain.connect(ctx.destination);
-    over.start(now);
-    over.stop(now + 0.12);
+    // The delayed, lower noise tail sounds like water hitting the surface.
+    const splash = ctx.createBufferSource();
+    const splashFilter = ctx.createBiquadFilter();
+    const splashGain = ctx.createGain();
+    splash.buffer = noise;
+    splashFilter.type = 'lowpass';
+    splashFilter.frequency.setValueAtTime(1200, now + 0.025);
+    splashFilter.frequency.exponentialRampToValueAtTime(350, now + 0.21);
+    splashGain.gain.setValueAtTime(0.001, now);
+    splashGain.gain.linearRampToValueAtTime(0.17, now + 0.045);
+    splashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
+    splash.connect(splashFilter);
+    splashFilter.connect(splashGain);
+    splashGain.connect(ctx.destination);
+    splash.start(now);
+    splash.stop(now + 0.22);
   }
 
   function playHazardHit() {
@@ -1008,7 +1021,8 @@ const Game = (() => {
       triggerHazardFeedback();
       deductLife();
     } else if (tile.isLife) {
-      SoundFX.playSafeTap(combo);
+      SoundFX.playSafeTap();
+      SoundFX.playSpeedUp();
       FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
       if (lives < MAX_LIVES) {
         lives++;
@@ -1036,9 +1050,8 @@ const Game = (() => {
         saveBestScore(score);
       }
 
-      SoundFX.playSafeTap(combo);
-      if (tile.isRainbow) SoundFX.playSpeedUp();
-      if (tile.isSlow) SoundFX.playSlowDown();
+      SoundFX.playSafeTap();
+      if (tile.isRainbow || tile.isSlow) SoundFX.playSpeedUp();
       FXEngine.spawnBurst(centerX, centerY, tile.palette.particle, false);
       FXEngine.spawnFloatingText(
         centerX,

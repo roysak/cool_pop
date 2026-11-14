@@ -587,7 +587,7 @@ input:checked + .toggle-track::after {
    stroke-linejoin: round;
    filter: drop-shadow(0 1px 1px #ffffffaa);
    pointer-events: none;
-   left: 4%;
+   left: 3.5%;
    top: 9%;
 }
 .tile-life {
