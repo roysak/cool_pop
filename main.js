@@ -550,7 +550,8 @@ const FXEngine = (() => {
 const Game = (() => {
   const TOTAL_CELLS = 36;
   const MAX_LIVES = 3;
-  const STORAGE_KEY = 'prism_tap_yt_best_v1';
+  const STORAGE_KEY = 'cool_pop_yt_best_v1';
+  const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
 
   // DOM Elements
   const gridArena = document.getElementById('gridArena');
@@ -613,8 +614,11 @@ const Game = (() => {
   // Load persisted high score safely
   function loadBestScore() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(PREVIOUS_STORAGE_KEY);
       bestScore = saved ? parseInt(saved, 10) || 0 : 0;
+      if (saved && localStorage.getItem(STORAGE_KEY) === null) {
+        localStorage.setItem(STORAGE_KEY, String(bestScore));
+      }
     } catch (e) {
       bestScore = 0;
     }
@@ -761,7 +765,7 @@ const Game = (() => {
     const uid = ++tileUidCounter;
     const tileEl = document.createElement('button');
     tileEl.type = 'button';
-    tileEl.className = `prism-tile ${isHazard ? 'tile-hazard' : 'tile-safe'}`;
+    tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : 'tile-safe'}`;
     tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : 'Cool balloon — pop');
 
     // Tint the shared translucent balloon material with the game palette.

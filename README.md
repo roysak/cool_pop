@@ -1,8 +1,8 @@
-# Prism Tap
+# Cool Pop
 
-Prism Tap is a 6×6 water-balloon reflex game for the browser and YouTube Playables. Pop the cool balloons, let red balloons float by, and build your score before your three lives run out. Hard mode also costs a life when you miss a cool balloon.
+Cool Pop is a 6×6 water-balloon reflex game for the browser and YouTube Playables. Pop the cool balloons, let red balloons float by, and build your score before your three lives run out. Hard mode also costs a life when you miss a cool balloon.
 
-The page is in `index.html`, base styles are in `main.css`, the poolside theme and shared balloon artwork are in `splash.css`, and game logic is in `main.js`. The balloons are drawn in CSS; water splashes, droplets, and ripples use canvas. No additional image downloads are needed. `tap.html` is the original, unchanged single-file version.
+The page is in `index.html`, base styles are in `main.css`, the poolside theme and shared balloon artwork are in `splash.css`, and game logic is in `main.js`. The balloons are drawn in CSS; water splashes, droplets, and ripples use canvas. The home screen title image is `cool-pop-title.png`.
 
 ## Run locally
 
