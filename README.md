@@ -2,6 +2,8 @@
 
 Cool Pop is a 6×6 water-balloon reflex game for the browser and YouTube Playables. Pop the cool balloons, let red balloons float by, and build your score before your three lives run out. Enable Hard mode in the pause menu to also lose a life when you miss a cool balloon.
 
+Regular pops earn 6–10 points before the combo multiplier, while rainbow balloons double only their own pop points. The snowflake marked frost balloon earns regular points and rewinds the difficulty ramp by 17 seconds. Speed rises across 150 seconds of effective play time, with a frost balloon giving players another stretch at a gentler pace.
+
 The page is in `index.html`, base styles are in `main.css`, the gameplay and modal theme is in `splash.css`, the illustrated home screen layout is in `home.css`, and game logic is in `main.js`. Gameplay balloons use the WebP artwork in `assets/balloons`; water splashes, droplets, and ripples use canvas. Audio is synthesized with the Web Audio API.
 
 The home screen uses `assets/home-scene.webp` with a separate, keyboard-accessible Start button. The artwork fills standard portrait phones, cropping only the decorative edges. Other aspect ratios keep the entire composition visible with a blurred extension filling the surrounding space. It is a compressed WebP of artwork generated with the built-in imagegen tool using the supplied reference.

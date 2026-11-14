@@ -567,6 +567,23 @@ input:checked + .toggle-track::after {
    --balloon-dark: 90, 25, 174;
    filter: drop-shadow(0 0 8px #a220df80);
 }
+.tile-slow {
+   --balloon-rgb: 53, 201, 242;
+   --balloon-dark: 21, 90, 155;
+   filter: drop-shadow(0 0 9px #8ceeff);
+}
+.tile-slow .balloon-art {
+   filter: saturate(0.75) brightness(1.2) drop-shadow(0 7px 6px #155a9b55);
+}
+.slow-label {
+   position: relative;
+   z-index: 2;
+   color: #fff;
+   font-size: clamp(19px, 4.6vw, 29px);
+   line-height: 1;
+   text-shadow: 0 1px 3px #155a9b, 0 0 8px #155a9b;
+   pointer-events: none;
+}
 .rainbow-label {
    position: relative;
    z-index: 2;
