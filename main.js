@@ -616,12 +616,21 @@ const FXEngine = (() => {
       }
       ctx.save();
       ctx.globalAlpha = Math.max(0, ft.alpha);
-      ctx.font = `800 ${Math.round(15 * ft.scale)}px "JetBrains Mono", monospace`;
+      ctx.font = `800 ${Math.round(40 * ft.scale)}px "JetBrains Mono", monospace`;
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const halfWidth = ctx.measureText(ft.text).width / 2;
+      const drawX = Math.max(halfWidth + 6, Math.min(window.innerWidth - halfWidth - 6, ft.x));
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(16, 56, 85, 0.35)';
+      ctx.shadowBlur = 7;
+      ctx.shadowOffsetY = 2;
+      ctx.strokeText(ft.text, drawX, ft.y);
+      ctx.shadowColor = 'transparent';
       ctx.fillStyle = ft.color;
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.95)';
-      ctx.shadowBlur = 6;
-      ctx.fillText(ft.text, ft.x, ft.y);
+      ctx.fillText(ft.text, drawX, ft.y);
       ctx.restore();
     }
   }
