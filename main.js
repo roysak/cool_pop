@@ -648,7 +648,7 @@ const FXEngine = (() => {
       }
       ctx.save();
       ctx.globalAlpha = Math.max(0, ft.alpha);
-      ctx.font = `800 ${Math.round(40 * ft.scale)}px "JetBrains Mono", monospace`;
+      ctx.font = `800 ${Math.round(26 * ft.scale)}px "JetBrains Mono", monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const halfWidth = ctx.measureText(ft.text).width / 2;

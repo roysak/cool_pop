@@ -618,6 +618,8 @@ input:checked + .toggle-track::after {
       0 2px 2px #350c53,
       0 0 5px #350c53;
    pointer-events: none;
+   left: 3%;
+   top: 9%
 }
 .hazard {
    left: 1%;
