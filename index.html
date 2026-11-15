@@ -18,7 +18,6 @@
     <span class="scenery-bubble bubble-one"></span><span class="scenery-bubble bubble-two"></span><span class="scenery-bubble bubble-three"></span>
     <svg class="pool-waves" viewBox="0 0 1440 240" preserveAspectRatio="none"><path d="M0 95Q180 0 360 90T720 75T1080 90T1440 50V240H0Z" fill="#b5e7e1" fill-opacity=".45"/><path d="M0 145Q180 65 360 135T720 130T1080 140T1440 100V240H0Z" fill="#83d5d2" fill-opacity=".25"/></svg>
   </div>
-  <div class="corner-brand" aria-hidden="true"><span class="brand-drop">&#9682;</span> Cool Pop<span class="brand-edition">THE SPLASH EDITION</span></div>
   <!-- Ambient Cool Background Orbs -->
   <div class="ambient-orb w-80 h-80 bg-sky-200 -top-20 -left-20"></div>
   <div class="ambient-orb w-96 h-96 bg-indigo-200 -bottom-28 -right-20"></div>
@@ -180,11 +179,11 @@
     <h2 id="howToPlayTitle">How to Play</h2>
     <p class="screen-subtitle">Quick taps. Cool pops. Beat your best!</p>
     <ul class="help-rules">
-      <li><img src="assets/balloons/b-cyan.webp" alt=""><div><strong>Pop the cool balloons</strong><p>Tap or click before they disappear. Faster pops earn more points, and consecutive pops build your combo.</p></div></li>
-      <li><img src="assets/balloons/b-red.webp" alt=""><div><strong>Let red float by</strong><p>Popping red costs one life and resets your combo. You start with 3 lives; the round ends when they run out.</p></div></li>
-      <li><img src="assets/balloons/b-rainbow.webp" alt=""><div><strong>Rainbow = double points</strong><p>Rainbow balloons double the points for that pop.</p></div></li>
-      <li><span class="help-symbol" aria-hidden="true">&#128012;</span><div><strong>White snail = slow down</strong><p>Pop a snail balloon to ease the pace as the game speeds up.</p></div></li>
-      <li><span class="help-symbol help-heart" aria-hidden="true">&#9829;</span><div><strong>White heart = extra life</strong><p>Restore one life, up to 3. Missing a heart has no penalty.</p></div></li>
+      <li><span class="balloon-tile help-balloon tile-safe" aria-hidden="true"></span><div><strong>Pop the cool balloons</strong><p>Tap or click before they disappear. Faster pops earn more points, and consecutive pops build your combo.</p></div></li>
+      <li><span class="balloon-tile help-balloon tile-hazard" aria-hidden="true"></span><div><strong>Let red float by</strong><p>Popping red costs one life and resets your combo. You start with 3 lives; the round ends when they run out.</p></div></li>
+      <li><span class="balloon-tile help-balloon tile-safe tile-rainbow" aria-hidden="true"></span><div><strong>Rainbow = double points</strong><p>Rainbow balloons double the points for that pop.</p></div></li>
+      <li><span class="balloon-tile help-balloon tile-safe tile-slow" aria-hidden="true"></span><div><strong>White snail = slow down</strong><p>Pop a snail balloon to ease the pace as the game speeds up.</p></div></li>
+      <li><span class="balloon-tile help-balloon tile-safe tile-life" aria-hidden="true"></span><div><strong>White heart = extra life</strong><p>Restore one life, up to 3. Missing a heart has no penalty.</p></div></li>
     </ul>
     <p class="help-tip">Missing a cool balloon resets your combo. For an extra challenge, enable <strong>Hard mode</strong> in the pause menu: misses also cost a life.</p>
     <button id="gotItBtn" type="button" class="splash-button">Got it!</button>
