@@ -1038,7 +1038,7 @@ const Game = (() => {
       combo = 0;
       SoundFX.playHazardHit();
       FXEngine.spawnBurst(centerX, centerY, HAZARD_PALETTE.particle, true);
-      FXEngine.spawnFloatingText(centerX, centerY - 8, '-1 LIFE!', '#C83656', true);
+      FXEngine.spawnFloatingText(centerX, centerY - 8, '-1 Life!', '#C83656', true);
 
       triggerHazardFeedback();
       deductLife();
@@ -1049,9 +1049,9 @@ const Game = (() => {
       if (lives < MAX_LIVES) {
         lives++;
         renderLives();
-        FXEngine.spawnFloatingText(centerX, centerY - 6, '+1 LIFE!', '#D43157', true);
+        FXEngine.spawnFloatingText(centerX, centerY - 6, '+1 Life!', '#D43157', true);
       } else {
-        FXEngine.spawnFloatingText(centerX, centerY - 6, 'LIVES FULL', '#D43157', false);
+        FXEngine.spawnFloatingText(centerX, centerY - 6, 'Lives full', '#D43157', false);
       }
     } else {
       // TAPPED COOL SAFE TILE -> SCORE POINTS & BUILD COMBO!
@@ -1078,7 +1078,7 @@ const Game = (() => {
       FXEngine.spawnFloatingText(
         centerX,
         centerY - 6,
-        tile.isRainbow ? `2× POP! +${pointsEarned}` : tile.isSlow ? `SLOW DOWN! +${pointsEarned}` : multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
+        tile.isRainbow ? `2× POP! +${pointsEarned}` : tile.isSlow ? `Slow down! +${pointsEarned}` : multiplier > 1 ? `+${pointsEarned} (x${multiplier})` : `+${pointsEarned}`,
         tile.isRainbow ? '#6E19AE' : tile.palette.lip,
         tile.isRainbow || tile.isSlow || multiplier > 2
       );
@@ -1113,7 +1113,7 @@ const Game = (() => {
         FXEngine.spawnFloatingText(
           rect.left + rect.width / 2,
           rect.top + rect.height / 2,
-          'MISSED! -1 LIFE',
+          'Missed! -1 Life',
           '#C83656',
           false
         );
