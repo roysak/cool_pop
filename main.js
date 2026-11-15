@@ -1,21 +1,13 @@
 /*************************************************************************
- * 1. YOUTUBE PLAYABLES SDK WRAPPER & FALLBACK MOCK
+ * 1. YOUTUBE PLAYABLES SDK WRAPPER & STANDALONE FALLBACK
  *    Integrates official ytgame methods (firstFrameReady, gameReady,
  *    saveData, loadData, sendScore, system pause/audio) while supporting
  *    standalone web play.
  *************************************************************************/
 const YTPlayables = (() => {
   let isNativeSDK = false;
-  let audioEnabledByPlatform = true;
-  let onPauseCallback = null;
-  let onResumeCallback = null;
-  let onAudioChangeCallback = null;
 
   function init({ onPause, onResume, onAudioChange, onCloudDataLoaded }) {
-    onPauseCallback = onPause;
-    onResumeCallback = onResume;
-    onAudioChangeCallback = onAudioChange;
-
     const statusDot = document.getElementById('sdkStatusDot');
     const statusText = document.getElementById('sdkStatusText');
 
@@ -27,18 +19,16 @@ const YTPlayables = (() => {
         // Register lifecycle hooks
         if (window.ytgame.system) {
           window.ytgame.system.onPause(() => {
-            if (onPauseCallback) onPauseCallback();
+            if (onPause) onPause();
           });
           window.ytgame.system.onResume(() => {
-            if (onResumeCallback) onResumeCallback();
+            if (onResume) onResume();
           });
           window.ytgame.system.onAudioEnabledChange((isEnabled) => {
-            audioEnabledByPlatform = Boolean(isEnabled);
-            if (onAudioChangeCallback) onAudioChangeCallback(audioEnabledByPlatform);
+            if (onAudioChange) onAudioChange(Boolean(isEnabled));
           });
           if (typeof window.ytgame.system.isAudioEnabled === 'function') {
-            audioEnabledByPlatform = Boolean(window.ytgame.system.isAudioEnabled());
-            if (onAudioChangeCallback) onAudioChangeCallback(audioEnabledByPlatform);
+            if (onAudioChange) onAudioChange(Boolean(window.ytgame.system.isAudioEnabled()));
           }
         }
 
@@ -64,35 +54,15 @@ const YTPlayables = (() => {
         console.warn('YT Playables SDK init fallback:', err);
       }
     } else {
-      // Graceful standalone browser mock matching official ytgame API surface
-      window.ytgame = {
-        IN_PLAYABLES_ENV: false,
-        game: {
-          firstFrameReady: () => {},
-          gameReady: () => {},
-          saveData: (dataStr) => Promise.resolve(),
-          loadData: () => Promise.resolve('')
-        },
-        engagement: {
-          sendScore: (payload) => Promise.resolve()
-        },
-        system: {
-          isAudioEnabled: () => audioEnabledByPlatform,
-          onAudioEnabledChange: () => {},
-          onPause: () => {},
-          onResume: () => {}
-        }
-      };
-      window.ytgame.game.firstFrameReady();
-      window.ytgame.game.gameReady();
+      // Standalone play uses local storage and needs no SDK shim.
       statusDot.className = 'w-2 h-2 rounded-full bg-sky-500';
       statusText.textContent = 'Made for a little play';
     }
 
     // Also pause automatically if browser tab loses visibility
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && onPauseCallback) {
-        onPauseCallback();
+      if (document.hidden && onPause) {
+        onPause();
       }
     });
   }
@@ -100,8 +70,8 @@ const YTPlayables = (() => {
   function sendScore(scoreValue) {
     const numericScore = Math.max(0, Math.floor(scoreValue));
     try {
-      if (window.ytgame && window.ytgame.engagement && typeof window.ytgame.engagement.sendScore === 'function') {
-        window.ytgame.engagement.sendScore({ value: numericScore });
+      if (isNativeSDK && window.ytgame && window.ytgame.engagement && typeof window.ytgame.engagement.sendScore === 'function') {
+        Promise.resolve(window.ytgame.engagement.sendScore({ value: numericScore })).catch(() => {});
       }
     } catch (err) {
       console.warn('Failed to send score to YT SDK:', err);
@@ -110,7 +80,7 @@ const YTPlayables = (() => {
 
   function saveCloudData(bestScoreValue) {
     try {
-      if (window.ytgame && window.ytgame.game && typeof window.ytgame.game.saveData === 'function') {
+      if (isNativeSDK && window.ytgame && window.ytgame.game && typeof window.ytgame.game.saveData === 'function') {
         const payload = JSON.stringify({ bestScore: Math.max(0, Math.floor(bestScoreValue)) });
         window.ytgame.game.saveData(payload).catch(() => {});
       }
@@ -357,91 +327,55 @@ const COOL_SAFE_PALETTES = [
   {
     name: 'Cool Cyan',
     image: 'assets/balloons/b-cyan.webp',
-    top: '#20D8DF',
-    base: '#20BBDF',
     lip: '#2065DF',
-    border: '#79DAE7',
-    shadow: 'rgba(32, 164, 186, 0.34)',
     particle: '#20BBDF'
   },
   {
     name: 'Ocean Blue',
     image: 'assets/balloons/b-blue.webp',
-    top: '#20BADF',
-    base: '#336EE2',
     lip: '#491BBB',
-    border: '#8DCDEC',
-    shadow: 'rgba(27, 124, 174, 0.34)',
     particle: '#336EE2'
   },
   {
     name: 'Blue Green',
     image: 'assets/balloons/b-blue-green.webp',
-    top: '#27D7C5',
-    base: '#18B9B0',
     lip: '#087D83',
-    border: '#8DE7DD',
-    shadow: 'rgba(24, 185, 176, 0.34)',
     particle: '#18B9B0'
   },
   {
     name: 'Fresh Green',
     image: 'assets/balloons/b-green.webp',
-    top: '#82DB42',
-    base: '#4FC12D',
     lip: '#267E29',
-    border: '#A8E58D',
-    shadow: 'rgba(79, 193, 45, 0.34)',
     particle: '#4FC12D'
   },
   {
     name: 'Sunshine Yellow',
     image: 'assets/balloons/b-yellow.webp',
-    top: '#F2E64B',
-    base: '#DFC620',
     lip: '#A66D16',
-    border: '#F5E892',
-    shadow: 'rgba(223, 198, 32, 0.34)',
     particle: '#DFC620'
   },
   {
     name: 'Juicy Orange',
     image: 'assets/balloons/b-orange.webp',
-    top: '#F7A944',
-    base: '#E77B22',
     lip: '#A94718',
-    border: '#F4C58D',
-    shadow: 'rgba(231, 123, 34, 0.34)',
     particle: '#E77B22'
   },
   {
     name: 'Soft Violet',
     image: 'assets/balloons/b-purple.webp',
-    top: '#D64FE6',
-    base: '#A220DF',
     lip: '#5A19AE',
-    border: '#B0BBF1',
-    shadow: 'rgba(117, 119, 223, 0.34)',
     particle: '#A220DF'
   },
   {
     name: 'Deep Indigo',
     image: 'assets/balloons/b-indigo.webp',
-    top: '#7377EC',
-    base: '#5156D8',
     lip: '#30328F',
-    border: '#AEB0F4',
-    shadow: 'rgba(81, 86, 216, 0.34)',
     particle: '#5156D8'
   },
   {
     name: 'Rose Pop',
     image: 'assets/balloons/b-rose.webp',
-    top: '#F06BA8',
-    base: '#DE448B',
     lip: '#9E2B68',
-    border: '#F4ACCD',
-    shadow: 'rgba(222, 68, 139, 0.34)',
     particle: '#DE448B'
   }
 ];
@@ -449,11 +383,7 @@ const COOL_SAFE_PALETTES = [
 const HAZARD_PALETTE = {
   name: 'Crimson Hazard',
   image: 'assets/balloons/b-red.webp',
-  top: '#E75A71',
-  base: '#E23350',
   lip: '#A6183C',
-  border: '#F2AFB7',
-  shadow: 'rgba(221, 86, 109, 0.42)',
   particle: '#DD566D'
 };
 
@@ -461,8 +391,6 @@ const RAINBOW_COLORS = ['#E23350', '#DF8F20', '#DFC620', '#62CE1D', '#20BBDF', '
 const RAINBOW_PALETTE = {
   name: 'Rainbow',
   image: 'assets/balloons/b-rainbow.webp',
-  top: '#D64FE6',
-  base: '#A220DF',
   lip: '#5A19AE',
   particle: RAINBOW_COLORS
 };
@@ -470,28 +398,19 @@ const RAINBOW_PALETTE = {
 const SLOW_PALETTE = {
   name: 'Slowdown',
   image: 'assets/balloons/b-white.webp',
-  top: '#F7F8FF',
-  base: '#DCE5F2',
   lip: '#8B9DBA',
   particle: ['#FFFFFF', '#DCE5F2', '#A9C3E3']
 };
 const LIFE_PALETTE = {
   name: 'Extra Life',
   image: 'assets/balloons/b-white.webp',
-  top: '#FFF7FA',
-  base: '#F2DCE6',
   lip: '#D43157',
   particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
 };
 
 // Shared artwork keeps the guide and live balloons visually identical.
 function renderBalloon(tileEl, palette, { isHazard = false, isRainbow = false, isSlow = false, isLife = false } = {}) {
-    // Palette variables still support particle colors and the rainbow glow, while
-    // the visible balloon itself comes from assets/balloons.
-    tileEl.style.setProperty('--balloon-top', palette.top);
-    const hex = palette.base.slice(1);
-    const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
-    tileEl.style.setProperty('--balloon-rgb', rgb);
+    // Match the image shadow to its palette.
     const dark = palette.lip.slice(1);
     tileEl.style.setProperty('--balloon-dark', [0, 2, 4].map((i) => parseInt(dark.slice(i, i + 2), 16)).join(', '));
 
@@ -597,9 +516,7 @@ const FXEngine = (() => {
         vy: Math.sin(angle) * speed - 1.1,
         size: 2.5 + Math.random() * 4,
         alpha: .85,
-        color: colors[i % colors.length],
-        rotation: Math.random() * Math.PI,
-        vRot: (Math.random() - 0.5) * 0.2
+        color: colors[i % colors.length]
       });
     }
   }
@@ -735,7 +652,7 @@ const FXEngine = (() => {
 })();
 
 /*************************************************************************
- * 5. CORE GAME CONTROLLER (6x6 INVISIBLE GRID + PROGRESSIVE DIFFICULTY)
+ * 5. CORE GAME CONTROLLER (5x5 INVISIBLE GRID + PROGRESSIVE DIFFICULTY)
  *************************************************************************/
 const Game = (() => {
   const TOTAL_CELLS = 25;
@@ -779,7 +696,7 @@ const Game = (() => {
 
   // State variables
   let cellElements = [];
-  let activeTiles = new Map(); // cellIndex -> tileData
+  const activeTiles = new Map(); // cellIndex -> tileData
   let state = 'IDLE'; // 'IDLE' | 'PLAYING' | 'PAUSED' | 'GAMEOVER'
   let score = 0;
   let bestScore = 0;
@@ -815,7 +732,8 @@ const Game = (() => {
   function loadBestScore() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(PREVIOUS_STORAGE_KEY);
-      bestScore = saved ? parseInt(saved, 10) || 0 : 0;
+      const parsed = Number(saved);
+      bestScore = Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
       if (saved && localStorage.getItem(STORAGE_KEY) === null) {
         localStorage.setItem(STORAGE_KEY, String(bestScore));
       }
@@ -826,7 +744,8 @@ const Game = (() => {
   }
 
   function saveBestScore(newBest) {
-    bestScore = Math.max(bestScore, newBest);
+    if (!Number.isFinite(newBest) || newBest <= bestScore) return;
+    bestScore = Math.max(bestScore, Math.floor(newBest));
     try {
       localStorage.setItem(STORAGE_KEY, String(bestScore));
     } catch (e) {}
@@ -834,7 +753,7 @@ const Game = (() => {
     bestScoreHud.textContent = bestScore.toLocaleString();
   }
 
-  // Build the 36 completely invisible cells in the 6x6 grid
+  // Build the 25 completely invisible cells in the 5x5 grid
   function buildGrid() {
     gridArena.innerHTML = '';
     cellElements = [];
@@ -999,7 +918,6 @@ const Game = (() => {
 
     activeTiles.set(cellIndex, {
       uid,
-      cellIndex,
       el: tileEl,
       timerCircle,
       isHazard,
@@ -1167,6 +1085,11 @@ const Game = (() => {
     }
   }
 
+  function clearTiles() {
+    activeTiles.clear();
+    cellElements.forEach((cell) => cell.replaceChildren());
+  }
+
   /**
    * Starts a fresh round.
    */
@@ -1177,11 +1100,7 @@ const Game = (() => {
     roundBestScore = bestScore;
     setScreen('play');
 
-    // Clear any leftover tiles
-    activeTiles.forEach((t) => {
-      if (t.el.isConnected) t.el.remove();
-    });
-    activeTiles.clear();
+    clearTiles();
 
     syncDifficulty();
 
@@ -1368,8 +1287,7 @@ const Game = (() => {
     });
     document.querySelectorAll('.home-button').forEach((button) => button.addEventListener('click', () => {
       clearTimeout(gameOverTimer);
-      activeTiles.forEach((tile) => tile.el.remove());
-      activeTiles.clear();
+      clearTiles();
       FXEngine.clear();
       state = 'IDLE';
       setScreen('start');
