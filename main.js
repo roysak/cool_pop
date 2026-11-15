@@ -484,6 +484,65 @@ const LIFE_PALETTE = {
   particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
 };
 
+// Shared artwork keeps the guide and live balloons visually identical.
+function renderBalloon(tileEl, palette, { isHazard = false, isRainbow = false, isSlow = false, isLife = false } = {}) {
+    // Palette variables still support particle colors and the rainbow glow, while
+    // the visible balloon itself comes from assets/balloons.
+    tileEl.style.setProperty('--balloon-top', palette.top);
+    const hex = palette.base.slice(1);
+    const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
+    tileEl.style.setProperty('--balloon-rgb', rgb);
+    const dark = palette.lip.slice(1);
+    tileEl.style.setProperty('--balloon-dark', [0, 2, 4].map((i) => parseInt(dark.slice(i, i + 2), 16)).join(', '));
+
+    // Inner SVG shrinking perimeter progress ring + center icon/pip
+    const centerGraphic = isHazard
+      ? `<svg class="hazard w-6 h-6 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+         </svg>`
+      : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
+      : isSlow ? `<svg class="slow-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M4 24.5h19.5c2.5 0 4.5-2 4.5-4.5v-4.5c0-2-1.5-3.5-3.5-3.5S21 13.5 21 15.5V18" />
+          <path d="M24.5 12V7.5m3.5 5V9" />
+          <circle cx="24.5" cy="7" r="1" fill="currentColor" stroke="none" />
+          <circle cx="28" cy="8.5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12.5" cy="17.5" r="6.5" />
+          <path d="M12.5 14.5a3 3 0 1 1-3 3 1.5 1.5 0 0 1 3 0" />
+        </svg>`
+      : isLife ? `<svg class="life-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21 3.8 12.7A5 5 0 0 1 11 5.8L12 6.8l1-1a5 5 0 0 1 7.2 6.9Z" fill="currentColor" />
+          <path d="M12 9v7m-3.5-3.5h7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
+        </svg>`
+      : `<div class="safe-pip pointer-events-none"></div>`;
+
+    tileEl.innerHTML = `
+      <img class="balloon-art" src="${palette.image}" alt="" aria-hidden="true" draggable="false">
+      <svg class="tile-timer-ring" viewBox="0 0 44 44">
+        <circle class="timer-circle" cx="22" cy="22" r="17"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.8)"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-dasharray="106.8"
+                stroke-dashoffset="0"></circle>
+      </svg>
+      ${centerGraphic}
+    `;
+
+}
+
+const helpBalloons = [
+  [COOL_SAFE_PALETTES[0], {}],
+  [HAZARD_PALETTE, { isHazard: true }],
+  [RAINBOW_PALETTE, { isRainbow: true }],
+  [SLOW_PALETTE, { isSlow: true }],
+  [LIFE_PALETTE, { isLife: true }]
+];
+document.querySelectorAll('.help-balloon').forEach((balloon, index) => {
+  const [palette, type] = helpBalloons[index];
+  renderBalloon(balloon, palette, type);
+});
+
 // Warm every gameplay image while the player is on the start screen.
 // Keep the Image objects alive so browsers can reuse their decoded artwork.
 const preloadedBalloonImages = new Map();
@@ -920,48 +979,7 @@ const Game = (() => {
     tileEl.className = `balloon-tile ${isHazard ? 'tile-hazard' : isRainbow ? 'tile-safe tile-rainbow' : isSlow ? 'tile-safe tile-slow' : isLife ? 'tile-safe tile-life' : 'tile-safe'}`;
     tileEl.setAttribute('aria-label', isHazard ? 'Red balloon — avoid' : isRainbow ? 'Rainbow balloon — double points for this pop' : isSlow ? 'White snail balloon — slow the game down' : isLife ? 'White heart balloon — restore one life, up to three' : `${palette.name} balloon — pop`);
 
-    // Palette variables still support particle colors and the rainbow glow, while
-    // the visible balloon itself comes from assets/balloons.
-    tileEl.style.setProperty('--balloon-top', palette.top);
-    const hex = palette.base.slice(1);
-    const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
-    tileEl.style.setProperty('--balloon-rgb', rgb);
-    const dark = palette.lip.slice(1);
-    tileEl.style.setProperty('--balloon-dark', [0, 2, 4].map((i) => parseInt(dark.slice(i, i + 2), 16)).join(', '));
-
-    // Inner SVG shrinking perimeter progress ring + center icon/pip
-    const centerGraphic = isHazard
-      ? `<svg class="hazard w-6 h-6 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
-           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-         </svg>`
-      : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
-      : isSlow ? `<svg class="slow-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <path d="M4 24.5h19.5c2.5 0 4.5-2 4.5-4.5v-4.5c0-2-1.5-3.5-3.5-3.5S21 13.5 21 15.5V18" />
-          <path d="M24.5 12V7.5m3.5 5V9" />
-          <circle cx="24.5" cy="7" r="1" fill="currentColor" stroke="none" />
-          <circle cx="28" cy="8.5" r="1" fill="currentColor" stroke="none" />
-          <circle cx="12.5" cy="17.5" r="6.5" />
-          <path d="M12.5 14.5a3 3 0 1 1-3 3 1.5 1.5 0 0 1 3 0" />
-        </svg>`
-      : isLife ? `<svg class="life-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 21 3.8 12.7A5 5 0 0 1 11 5.8L12 6.8l1-1a5 5 0 0 1 7.2 6.9Z" fill="currentColor" />
-          <path d="M12 9v7m-3.5-3.5h7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
-        </svg>`
-      : `<div class="safe-pip pointer-events-none"></div>`;
-
-    tileEl.innerHTML = `
-      <img class="balloon-art" src="${palette.image}" alt="" aria-hidden="true" draggable="false">
-      <svg class="tile-timer-ring" viewBox="0 0 44 44">
-        <circle class="timer-circle" cx="22" cy="22" r="17"
-                fill="none"
-                stroke="rgba(255, 255, 255, 0.8)"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-dasharray="106.8"
-                stroke-dashoffset="0"></circle>
-      </svg>
-      ${centerGraphic}
-    `;
+    renderBalloon(tileEl, palette, { isHazard, isRainbow, isSlow, isLife });
 
     const timerCircle = tileEl.querySelector('.timer-circle');
 
