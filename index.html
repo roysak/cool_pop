@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://www.youtube.com/game_api/v1"></script>
   <meta charset="UTF-8" />
+  <script src="https://www.youtube.com/game_api/v1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Cool Pop &mdash; Make a splash</title>
 
-  <link rel="stylesheet" href="main.css">
-  <link rel="stylesheet" href="splash.css">
-  <link rel="stylesheet" href="home.css">
-  <link rel="stylesheet" href="dialogs.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body data-screen="start" class="relative flex flex-col items-center justify-between w-full h-full select-none overflow-hidden py-3 px-3 sm:py-5 sm:px-6">
 
@@ -26,7 +23,7 @@
   <!-- Full-screen red vignette flash when hazard is tapped -->
   <div id="hazardFlashOverlay" class="fixed inset-0 pointer-events-none z-40 opacity-0 transition-opacity duration-300"></div>
 
-  <!-- Particle & Floating Score FX Canvas ( overlaid over the 6x6 grid ) -->
+  <!-- Particle & Floating Score FX Canvas ( overlaid over the 5x5 grid ) -->
   <canvas id="fxCanvas" class="fixed inset-0 pointer-events-none z-30 w-full h-full"></canvas>
 
   <!-- ==================== TOP HUD BAR ==================== -->
@@ -48,7 +45,7 @@
       <div class="flex items-center justify-end gap-1.5 sm:gap-2 min-w-[115px]">
         <!-- How to Play Button -->
         <button id="gameHelpBtn" type="button" aria-label="How to Play" aria-haspopup="dialog" aria-controls="howToPlayModal"
-                class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 focus:outline-none">
+                class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700">
           <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.7 9a2.5 2.5 0 1 1 4.2 1.8c-1.2 1.1-1.9 1.5-1.9 3M12 17h.01" />
@@ -57,7 +54,7 @@
 
         <!-- Mute / Unmute Button -->
         <button id="muteBtn" type="button" aria-label="Toggle Sound"
-                class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 focus:outline-none">
+                class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700">
           <svg id="soundOnIcon" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
           </svg>
@@ -69,7 +66,7 @@
 
         <!-- Pause Button -->
         <button id="pauseBtn" type="button" aria-label="Pause Game"
-                class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 focus:outline-none">
+                class="btn-3d-secondary w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700">
           <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
           </svg>
@@ -91,9 +88,9 @@
     </div>
   </header>
 
-  <!-- ==================== CENTER 6x6 INVISIBLE ARENA ==================== -->
+  <!-- ==================== CENTER 5x5 INVISIBLE ARENA ==================== -->
   <main id="mainShakeContainer" class="relative flex-1 flex items-center justify-center w-full my-1">
-    <!-- Subtle corner crop marks so the player senses the 6x6 field boundaries even when all 36 cells are empty -->
+    <!-- Subtle corner crop marks so the player senses the 5x5 field boundaries even when all 25 cells are empty -->
     <div class="relative flex items-center justify-center p-2 sm:p-3">
       <!-- Top-Left Corner Bracket -->
       <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-slate-300/70 rounded-tl-lg pointer-events-none"></div>
@@ -104,9 +101,9 @@
       <!-- Bottom-Right Corner Bracket -->
       <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-slate-300/70 rounded-br-lg pointer-events-none"></div>
 
-      <!-- The 6x6 Invisible Grid -->
-      <div id="gridArena" class="arena-wrapper" role="grid" aria-label="6 by 6 Reflex Grid">
-        <!-- 36 invisible cells injected by JS -->
+      <!-- The 5x5 Invisible Grid -->
+      <div id="gridArena" class="arena-wrapper" role="group" aria-label="5 by 5 Reflex Grid">
+        <!-- 25 invisible cells injected by JS -->
       </div>
     </div>
   </main>
@@ -148,7 +145,7 @@
         <span class="relative"><input type="checkbox" id="strictMissToggle" class="sr-only" aria-describedby="strictRuleDesc"><span class="toggle-track"></span></span>
       </label>
       <button id="resumeGameBtn" type="button" class="splash-button"><svg class="button-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg>Keep splashing</button>
-      <button id="restartFromPauseBtn" type="button" class="quiet-button home-button">Start a fresh round</button>
+      <button id="restartFromPauseBtn" type="button" class="quiet-button">Start a fresh round</button>
       <button type="button" class="quiet-button home-button">Back to the pool</button>
     </section>
 
