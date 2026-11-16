@@ -97,7 +97,7 @@ const YTPlayables = (() => {
 
 /*************************************************************************
  * 2. SYNTHESIZED WEB AUDIO API SOUND ENGINE
- *    Can-opening pops and water splashes for safe tiles, low buzz/thud for
+ *    Short resonant bubble pops for safe tiles, low buzz/thud for
  *    red tiles, and harmonic level-up chimes. Zero external audio assets needed.
  *************************************************************************/
 const SoundFX = (() => {
@@ -125,71 +125,20 @@ const SoundFX = (() => {
     if (!ctx) return;
 
     const now = ctx.currentTime;
-    const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.22), ctx.sampleRate);
-    const samples = noise.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
-
-    // The sharp tab click and fizz give the pop a can-opening edge.
-    const click = ctx.createBufferSource();
-    const clickFilter = ctx.createBiquadFilter();
-    const clickGain = ctx.createGain();
-    click.buffer = noise;
-    clickFilter.type = 'highpass';
-    clickFilter.frequency.setValueAtTime(2400, now);
-    clickGain.gain.setValueAtTime(0.28, now);
-    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
-    click.connect(clickFilter);
-    clickFilter.connect(clickGain);
-    clickGain.connect(ctx.destination);
-    click.start(now);
-    click.stop(now + 0.03);
-
-    const fizz = ctx.createBufferSource();
-    const fizzFilter = ctx.createBiquadFilter();
-    const fizzGain = ctx.createGain();
-    fizz.buffer = noise;
-    fizzFilter.type = 'bandpass';
-    fizzFilter.frequency.setValueAtTime(1700, now);
-    fizzFilter.Q.setValueAtTime(0.7, now);
-    fizzGain.gain.setValueAtTime(0.001, now);
-    fizzGain.gain.linearRampToValueAtTime(0.11, now + 0.018);
-    fizzGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-    fizz.connect(fizzFilter);
-    fizzFilter.connect(fizzGain);
-    fizzGain.connect(ctx.destination);
-    fizz.start(now);
-    fizz.stop(now + 0.13);
-
-    // A descending thump reads as the balloon bursting beneath the fizz.
+    // Match the reference's brief, pitched plop with a quick decay and slight drop.
     const pop = ctx.createOscillator();
     const popGain = ctx.createGain();
-    pop.type = 'triangle';
-    pop.frequency.setValueAtTime(260, now);
-    pop.frequency.exponentialRampToValueAtTime(90, now + 0.095);
+    pop.type = 'sine';
+    pop.frequency.setValueAtTime(820, now);
+    pop.frequency.exponentialRampToValueAtTime(2000, now + 0.12);
     popGain.gain.setValueAtTime(0.001, now);
-    popGain.gain.linearRampToValueAtTime(0.22, now + 0.006);
-    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.105);
+    popGain.gain.linearRampToValueAtTime(0.24, now + 0.002);
+    popGain.gain.exponentialRampToValueAtTime(0.025, now + 0.04);
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
     pop.connect(popGain);
     popGain.connect(ctx.destination);
     pop.start(now);
-    pop.stop(now + 0.11);
-
-    // The delayed, lower noise tail sounds like water hitting the surface.
-    const splash = ctx.createBufferSource();
-    const splashFilter = ctx.createBiquadFilter();
-    const splashGain = ctx.createGain();
-    splash.buffer = noise;
-    splashFilter.type = 'lowpass';
-    splashFilter.frequency.setValueAtTime(1200, now + 0.025);
-    splashFilter.frequency.exponentialRampToValueAtTime(350, now + 0.21);
-    splashGain.gain.setValueAtTime(0.001, now);
-    splashGain.gain.linearRampToValueAtTime(0.17, now + 0.045);
-    splashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
-    splash.connect(splashFilter);
-    splashFilter.connect(splashGain);
-    splashGain.connect(ctx.destination);
-    splash.start(now);
-    splash.stop(now + 0.22);
+    pop.stop(now + 0.15);
   }
 
   function playHazardHit() {
