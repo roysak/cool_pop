@@ -61,6 +61,7 @@ html, body {
 .flex-col { flex-direction: column; }
 .flex-1 { flex: 1 1 0%; }
 .items-center { align-items: center; }
+.items-end { align-items: flex-end; }
 .justify-center { justify-content: center; }
 .justify-between { justify-content: space-between; }
 .justify-end { justify-content: flex-end; }
@@ -744,16 +745,17 @@ header .hud-glass {
    background: #fffffff0;
    border-radius: 22px;
 }
-.score-strip {
+.game-hud {
    display: grid;
-   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+   grid-template-columns: auto minmax(0, .8fr) minmax(0, 1.2fr) 44px;
    align-items: center;
-   gap: 12px;
-   padding: 11px 18px 12px;
-   border: 1px solid #e6d8f9;
-   border-radius: 18px;
-   background: #fffffff0;
-   box-shadow: 0 4px 0 #d7bdf655, 0 10px 25px #5a19ae10, inset 0 2px #fff;
+   gap: clamp(5px, 2vw, 12px);
+}
+.game-hud > :first-child {
+   min-width: 0;
+}
+.game-hud #livesContainer {
+   gap: clamp(2px, .8vw, 8px);
 }
 .score-strip-current,
 .score-strip-best {
@@ -762,11 +764,14 @@ header .hud-glass {
    flex-direction: column;
    gap: 5px;
 }
+.score-strip-current{
+   margin-right: auto;
+}
 .score-strip-best {
-   align-items: flex-end;
-   border-left: 1px solid #e6d8f9;
-   padding-left: 12px;
-   text-align: right;
+   display: none;
+   align-items: flex-start;
+   border-right: 1px solid #e6d8f9;
+   padding-right: clamp(5px, 2vw, 12px);
 }
 .score-strip-label {
    color: var(--pool-muted);
@@ -775,19 +780,57 @@ header .hud-glass {
    letter-spacing: .08em;
    line-height: 1;
    text-transform: uppercase;
+   white-space: nowrap;
 }
 .score-strip-value {
    display: flex;
    min-width: 0;
    align-items: center;
-   gap: 8px;
+   flex-wrap: wrap;
+   gap: 4px 8px;
 }
 #scoreDisplay {
    color: var(--pop-violet-deep);
-   font-size: clamp(25px, 7vw, 34px);
+   font-size: clamp(19px, 5vw, 26px);
    font-weight: 800;
    letter-spacing: -.04em;
    line-height: 1;
+}
+.options-wrap {
+   position: relative;
+}
+.options-button {
+   width: 44px;
+   height: 44px;
+}
+.options-popover {
+   position: absolute;
+   top: calc(100% + 12px);
+   right: 0;
+   z-index: 25;
+   width: 176px;
+   padding: 10px;
+   border: 1px solid #e6d8f9;
+   border-radius: 18px;
+   background: #fff;
+   box-shadow: 0 12px 30px #5a19ae30, inset 0 2px #fff;
+}
+.options-popover:not([hidden]) {
+   display: flex;
+   flex-direction: column;
+   gap: 9px;
+}
+.options-popover button {
+   width: 100%;
+   justify-content: flex-start;
+   gap: 10px;
+   padding: 0 12px;
+   font-size: 12px;
+   font-weight: 700;
+   white-space: nowrap;
+}
+.options-popover button svg {
+   flex: none;
 }
 footer {
    flex-direction: column-reverse;
@@ -849,11 +892,12 @@ header .text-slate-500 {
    color: var(--pool-muted);
 }
 #bestScoreHud {
-   color: var(--pop-violet-deep);
-   font-size: clamp(20px, 5.5vw, 26px);
-   font-weight: 800;
+   color: var(--pool-muted);
+   font-size: clamp(18px, 4.5vw, 16px);
+   font-weight: 400;
    letter-spacing: -.04em;
    line-height: 1;
+   opacity: 0.6;
 }
 #comboBadge {
    background: #f3eaae;
@@ -932,9 +976,6 @@ header .text-slate-500 {
    }
    .screen-subtitle {
       font-size: 10px;
-   }
-   header .min-w-\[115px\] {
-      min-width: 0;
    }
    header .hud-glass {
       padding: 10px;
@@ -1395,7 +1436,7 @@ body[data-screen="pause"] #modalBackdrop {
 .pause-card .splash-button { margin-top: 22px; }
 #restartFromPauseBtn { min-height: 50px; margin-top: 13px; }
 
-#muteBtn, #gameHelpBtn, #pauseBtn {
+#optionsBtn, #muteBtn, #gameHelpBtn, #pauseBtn {
   min-width: 44px;
   min-height: 44px;
   border: 1px solid #c4f3ff;
@@ -1404,8 +1445,13 @@ body[data-screen="pause"] #modalBackdrop {
   color: #245884;
   box-shadow: inset 0 2px 2px #fff, inset 0 -3px 4px #1989c050, 0 3px 0 #3b90bc;
 }
-#muteBtn:hover, #gameHelpBtn:hover, #pauseBtn:hover { background: radial-gradient(ellipse at 30% 10%, #fff, transparent 55%), linear-gradient(#b9f1ff, #64d2f2); box-shadow: inset 0 2px 2px #fff, 0 3px 0 #3b90bc; }
-#muteBtn:active, #gameHelpBtn:active, #pauseBtn:active { transform: translateY(2px); box-shadow: inset 0 1px 3px #2589b540, 0 1px 0 #3b90bc; }
+#optionsBtn:hover, #muteBtn:hover, #gameHelpBtn:hover, #pauseBtn:hover { background: radial-gradient(ellipse at 30% 10%, #fff, transparent 55%), linear-gradient(#b9f1ff, #64d2f2); box-shadow: inset 0 2px 2px #fff, 0 3px 0 #3b90bc; }
+#optionsBtn:active, #muteBtn:active, #gameHelpBtn:active, #pauseBtn:active { transform: translateY(2px); box-shadow: inset 0 1px 3px #2589b540, 0 1px 0 #3b90bc; }
+.options-popover #gameHelpBtn,
+.options-popover #muteBtn,
+.options-popover #pauseBtn {
+  border-radius: 12px;
+}
 @media (hover: hover) {
   .quiet-button:hover { transform: translateY(-1px); filter: brightness(1.04); }
 }

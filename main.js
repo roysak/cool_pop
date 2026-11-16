@@ -669,7 +669,17 @@ const Game = (() => {
   let tileUidCounter = 0;
   let gameOverTimer = null;
 
+  function closeOptions(restoreFocus = false) {
+    const popover = document.getElementById('optionsPopover');
+    if (popover.hidden) return;
+    popover.hidden = true;
+    const button = document.getElementById('optionsBtn');
+    button.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) button.focus({ preventScroll: true });
+  }
+
   function setScreen(screen) {
+    if (screen !== 'play') closeOptions();
     document.body.dataset.screen = screen;
     const modalOpen = screen !== 'play';
     document.querySelector('header').inert = modalOpen;
@@ -1077,7 +1087,7 @@ const Game = (() => {
 
     state = 'PLAYING';
     lastFrameTime = performance.now();
-    document.getElementById('pauseBtn').focus({ preventScroll: true });
+    document.getElementById('optionsBtn').focus({ preventScroll: true });
   }
 
   function pauseGame() {
@@ -1098,7 +1108,7 @@ const Game = (() => {
     state = 'PLAYING';
     setScreen('play');
     lastFrameTime = performance.now();
-    document.getElementById('pauseBtn').focus({ preventScroll: true });
+    document.getElementById('optionsBtn').focus({ preventScroll: true });
   }
 
   function endGame() {
@@ -1212,10 +1222,23 @@ const Game = (() => {
   function bindEvents() {
     const howToPlayBtn = document.getElementById('howToPlayBtn');
     const gameHelpBtn = document.getElementById('gameHelpBtn');
+    const optionsBtn = document.getElementById('optionsBtn');
+    const optionsPopover = document.getElementById('optionsPopover');
+    optionsBtn.addEventListener('click', () => {
+      const opening = optionsPopover.hidden;
+      optionsPopover.hidden = !opening;
+      optionsBtn.setAttribute('aria-expanded', String(opening));
+      if (opening) gameHelpBtn.focus({ preventScroll: true });
+      else optionsBtn.focus({ preventScroll: true });
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!event.target.closest('.options-wrap')) closeOptions();
+    });
     let helpOpenedDuringPlay = false;
     howToPlayBtn.addEventListener('click', () => howToPlayModal.showModal());
     gameHelpBtn.addEventListener('click', () => {
       if (state !== 'PLAYING') return;
+      closeOptions();
       helpOpenedDuringPlay = true;
       state = 'PAUSED';
       setScreen('pause');
@@ -1229,7 +1252,7 @@ const Game = (() => {
         state = 'PLAYING';
         setScreen('play');
         lastFrameTime = performance.now();
-        gameHelpBtn.focus({ preventScroll: true });
+        optionsBtn.focus({ preventScroll: true });
       } else {
         howToPlayBtn.focus({ preventScroll: true });
       }
@@ -1263,6 +1286,7 @@ const Game = (() => {
       const muted = SoundFX.isMuted();
       soundOnIcon.classList.toggle('hidden', muted);
       soundOffIcon.classList.toggle('hidden', !muted);
+      document.getElementById('soundLabel').textContent = muted ? 'Sound off' : 'Sound on';
       muteBtn.setAttribute('aria-pressed', String(muted));
       muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
     }
@@ -1279,6 +1303,10 @@ const Game = (() => {
     window.addEventListener('keydown', (e) => {
       // The native help dialog handles focus and Escape; game shortcuts must wait.
       if (howToPlayModal.open) return;
+      if (e.key === 'Escape' && !optionsPopover.hidden) {
+        closeOptions(true);
+        return;
+      }
       if (e.key === 'Tab' && !modalBackdrop.classList.contains('hidden')) {
         const visibleModal = [startModal, pauseModal, gameOverModal].find((el) => !el.classList.contains('hidden'));
         const controls = visibleModal.querySelectorAll('button, input');
