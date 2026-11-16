@@ -347,13 +347,13 @@ const RAINBOW_PALETTE = {
 const SLOW_PALETTE = {
   name: 'Slowdown',
   image: 'assets/balloons/b-white.webp',
-  lip: '#8B9DBA',
+  lip: '#19263b',
   particle: ['#FFFFFF', '#DCE5F2', '#A9C3E3']
 };
 const LIFE_PALETTE = {
   name: 'Extra Life',
   image: 'assets/balloons/b-white.webp',
-  lip: '#D43157',
+  lip: '#ad7480',
   particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
 };
 
@@ -504,11 +504,11 @@ const FXEngine = (() => {
         if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.globalAlpha = (1 - progress) * .42;
+      ctx.globalAlpha = (1 - progress) * 0.5;
       ctx.fillStyle = s.color;
       ctx.fill();
       ctx.globalAlpha = (1 - progress) * .65;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#ffffff88';
       ctx.lineWidth = 1.8;
       ctx.stroke();
       ctx.restore();
@@ -580,13 +580,13 @@ const FXEngine = (() => {
       const drawX = Math.max(halfWidth + 6, Math.min(window.innerWidth - halfWidth - 6, ft.x));
       ctx.lineJoin = 'round';
       ctx.lineWidth = 3;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = ft.color; //'#ffffff';
       ctx.shadowColor = 'rgba(16, 56, 85, 0.35)';
       ctx.shadowBlur = 7;
       ctx.shadowOffsetY = 2;
       ctx.strokeText(ft.text, drawX, ft.y);
       ctx.shadowColor = 'transparent';
-      ctx.fillStyle = ft.color;
+      ctx.fillStyle = '#ffffff';
       ctx.fillText(ft.text, drawX, ft.y);
       ctx.restore();
     }
@@ -607,10 +607,10 @@ const Game = (() => {
   const TOTAL_CELLS = 25;
   const MAX_LIVES = 3;
   const RAINBOW_CHANCE = 0.03; // 3% of safe spawns.
-  const SLOW_CHANCE = 0.035;
+  const SLOW_CHANCE = 1; // 0.035;
   const SLOW_RELIEF_MS = 17000; // Rewind one speed level; the ramp resumes from there.
   const SLOW_SPAWN_COOLDOWN_MS = 25000;
-  const LIFE_CHANCE = 0.035;
+  const LIFE_CHANCE = 1; //0.035;
   const LIFE_SPAWN_COOLDOWN_MS = 30000;
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
   const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
@@ -734,8 +734,8 @@ const Game = (() => {
       const wrapper = document.createElement('div');
       wrapper.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
         isAlive
-          ? 'border border-rose-200/90 text-rose-500 shadow-sm'
-          : 'bg-slate-100/80 border border-slate-200/60 text-slate-300 scale-90'
+          ? 'text-rose-500 shadow-sm'
+          : 'bg-slate-100/80 text-slate-300 scale-90'
       } ${i === lostLifeIndex ? 'life-lost-anim' : ''}`;
 
       wrapper.innerHTML = `
@@ -1294,6 +1294,20 @@ const Game = (() => {
     muteBtn.addEventListener('click', () => {
       SoundFX.toggleUserMute();
       syncAudioIcons();
+    });
+
+    const themeBtn = document.getElementById('themeBtn');
+    function syncThemeButton() {
+      const isDark = document.documentElement.dataset.theme !== 'light';
+      themeBtn.setAttribute('aria-pressed', String(isDark));
+      document.getElementById('themeLabel').textContent = isDark ? 'Light mode' : 'Dark mode';
+    }
+    syncThemeButton();
+    themeBtn.addEventListener('click', () => {
+      const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = theme;
+      syncThemeButton();
+      try { localStorage.setItem('cool_pop_theme_v1', theme); } catch (error) {}
     });
 
     strictMissToggle.addEventListener('change', syncDifficulty);

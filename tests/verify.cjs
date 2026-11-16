@@ -53,6 +53,9 @@ const postcss = require('postcss');
     const click = id => page.locator(`#${id}`).evaluate(el => el.click());
     const advance = frames => page.evaluate(frames => window.advanceGame(frames), frames);
     await screen('start');
+    assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
+    assert.equal(await page.locator('.home-art-dark').isVisible(), true);
+    assert.equal(await page.locator('.home-art-light').isVisible(), false);
     assert.equal(await page.locator('.grid-cell').count(), 25);
     assert.equal(await page.evaluate(() => { const ids = [...document.querySelectorAll('[id]')].map(el => el.id); return new Set(ids).size === ids.length; }), true);
     assert.equal(await page.evaluate(() => [...document.images].every(img => img.complete && img.naturalWidth > 0)), true);
@@ -63,7 +66,7 @@ const postcss = require('postcss');
     await page.setViewportSize({ width: 320, height: 568 });
     assert.equal(await page.evaluate(() => {
       const hud = document.querySelector('.game-hud').getBoundingClientRect();
-      return [...document.querySelector('.game-hud').children].every(child => {
+      return [...document.querySelector('.game-hud').children].filter(child => getComputedStyle(child).display !== 'none').every(child => {
         const box = child.getBoundingClientRect();
         return box.left >= hud.left && box.right <= hud.right;
       });
@@ -72,6 +75,13 @@ const postcss = require('postcss');
     await click('optionsBtn');
     assert.equal(await page.getAttribute('#optionsBtn', 'aria-expanded'), 'true');
     assert.equal(await page.locator('#optionsPopover').isVisible(), true);
+    assert.equal(await page.getAttribute('#themeBtn', 'aria-pressed'), 'true');
+    await click('themeBtn');
+    assert.equal(await page.getAttribute('html', 'data-theme'), 'light');
+    assert.equal(await page.getAttribute('#themeBtn', 'aria-pressed'), 'false');
+    assert.equal(await page.evaluate(() => localStorage.getItem('cool_pop_theme_v1')), 'light');
+    await click('themeBtn');
+    assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
     await page.keyboard.press('Escape'); await screen('play');
     assert.equal(await page.locator('#optionsPopover').isVisible(), false);
     await click('optionsBtn');
@@ -115,6 +125,10 @@ const postcss = require('postcss');
     assert.ok(Number(await page.locator('#bestScoreHud').textContent()) > 0);
     await page.evaluate(() => localStorage.setItem('cool_pop_yt_best_v1', '-100'));
     await page.reload(); assert.equal(await page.locator('#bestScoreHud').textContent(), '0');
+    await page.evaluate(() => localStorage.setItem('cool_pop_theme_v1', 'light'));
+    await page.reload(); assert.equal(await page.getAttribute('html', 'data-theme'), 'light');
+    assert.equal(await page.locator('.home-art-dark').isVisible(), false);
+    assert.equal(await page.locator('.home-art-light').isVisible(), true);
     for (const [width, height] of [[320, 568], [844, 390], [1440, 1000]]) {
       await page.setViewportSize({ width, height });
       await click('howToPlayBtn');

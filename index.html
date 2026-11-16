@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    try {
+      if (localStorage.getItem('cool_pop_theme_v1') === 'light') {
+        document.documentElement.dataset.theme = 'light';
+      }
+    } catch (error) { /* Dark mode remains the default when storage is unavailable. */ }
+  </script>
   <script src="https://www.youtube.com/game_api/v1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Cool Pop &mdash; Make a splash</title>
@@ -42,10 +49,10 @@
       </div>
       <!-- Left: 3 Lives Indicator + Speed Level -->
       <div class="flex flex-col items-end">
-        <div id="livesContainer" class="flex items-center gap-1.5 sm:gap-2" aria-label="Lives Remaining">
+        <div id="livesContainer" class="flex items-center" aria-label="Lives Remaining">
           <!-- 3 Tactile Shield-Heart Icons populated/updated by JS -->
         </div>
-        <div class="mt-1 flex items-center gap-1.5">
+        <div class="levelDisplay mt-1 flex items-center gap-1.5">
           <span id="speedBadge" class="font-mono-num text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             Level 1
           </span>
@@ -60,36 +67,44 @@
         </button>
         <div id="optionsPopover" class="options-popover" role="group" aria-label="Game options" hidden>
         <!-- How to Play Button -->
-        <button id="gameHelpBtn" type="button" aria-label="How to Play" aria-haspopup="dialog" aria-controls="howToPlayModal"
-                class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.7 9a2.5 2.5 0 1 1 4.2 1.8c-1.2 1.1-1.9 1.5-1.9 3M12 17h.01" />
-          </svg>
-          <span>How to play</span>
-        </button>
+          <button id="gameHelpBtn" type="button" aria-label="How to Play" aria-haspopup="dialog" aria-controls="howToPlayModal"
+                  class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.7 9a2.5 2.5 0 1 1 4.2 1.8c-1.2 1.1-1.9 1.5-1.9 3M12 17h.01" />
+            </svg>
+            <span>How to play</span>
+          </button>
 
-        <!-- Mute / Unmute Button -->
-        <button id="muteBtn" type="button" aria-label="Toggle Sound"
-                class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
-          <svg id="soundOnIcon" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-          </svg>
-          <svg id="soundOffIcon" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-          </svg>
-          <span id="soundLabel">Sound on</span>
-        </button>
+          <!-- Mute / Unmute Button -->
+          <button id="muteBtn" type="button" aria-label="Toggle Sound"
+                  class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
+            <svg id="soundOnIcon" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            </svg>
+            <svg id="soundOffIcon" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+            </svg>
+            <span id="soundLabel">Sound on</span>
+          </button>
 
-        <!-- Pause Button -->
-        <button id="pauseBtn" type="button" aria-label="Pause Game"
-                class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
-          </svg>
-          <span>Pause game</span>
-        </button>
+          <button id="themeBtn" type="button" aria-label="Light mode" aria-pressed="true"
+                  class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.2 15.8A8.5 8.5 0 0 1 8.2 3.8a8.5 8.5 0 1 0 12 12Z" />
+            </svg>
+            <span id="themeLabel">Light mode</span>
+          </button>
+
+          <!-- Pause Button -->
+          <button id="pauseBtn" type="button" aria-label="Pause Game"
+                  class="btn-3d-secondary rounded-xl flex items-center text-slate-700">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 8v8m6-8v8" />
+            </svg>
+            <span>Pause game</span>
+          </button>
         </div>
       </div>
     </div>
@@ -130,7 +145,8 @@
   <div id="modalBackdrop" class="fixed inset-0 z-50">
     <section id="startModal" class="home-screen" role="dialog" aria-modal="true" aria-labelledby="startTitle">
       <h1 id="startTitle" class="sr-only">Cool Pop</h1>
-      <img class="home-art" src="assets/home-scene.webp" alt="" width="459" height="1024" fetchpriority="high" draggable="false">
+      <img class="home-art home-art-dark" src="assets/home-scene.webp" alt="" width="459" height="1024" fetchpriority="high" draggable="false">
+      <img class="home-art home-art-light" src="assets/home-scene.webp" alt="" width="459" height="1024" draggable="false">
       <button id="startGameBtn" type="button" class="start-button" aria-label="Start game">
         <span class="start-button-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false">
