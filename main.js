@@ -48,14 +48,14 @@ const YTPlayables = (() => {
           window.ytgame.game.gameReady();
         }
 
-        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        statusDot.className = 'sdk-status-dot sdk-status-dot-native';
         statusText.textContent = 'YouTube Playables';
       } catch (err) {
         console.warn('YT Playables SDK init fallback:', err);
       }
     } else {
       // Standalone play uses local storage and needs no SDK shim.
-      statusDot.className = 'w-2 h-2 rounded-full bg-sky-500';
+      statusDot.className = 'sdk-status-dot sdk-status-dot-standalone';
       statusText.textContent = 'Made for a little play';
     }
 
@@ -365,7 +365,7 @@ function renderBalloon(tileEl, palette, { isHazard = false, isRainbow = false, i
 
     // Inner SVG shrinking perimeter progress ring + center icon/pip
     const centerGraphic = isHazard
-      ? `<svg class="hazard w-6 h-6 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
+      ? `<svg class="hazard hazard-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
       : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
@@ -381,7 +381,7 @@ function renderBalloon(tileEl, palette, { isHazard = false, isRainbow = false, i
           <path d="M12 21 3.8 12.7A5 5 0 0 1 11 5.8L12 6.8l1-1a5 5 0 0 1 7.2 6.9Z" fill="currentColor" />
           <path d="M12 9v7m-3.5-3.5h7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
         </svg>`
-      : `<div class="safe-pip pointer-events-none"></div>`;
+      : `<div class="safe-pip"></div>`;
 
     tileEl.innerHTML = `
       <img class="balloon-art" src="${palette.image}" alt="" aria-hidden="true" draggable="false">
@@ -607,10 +607,10 @@ const Game = (() => {
   const TOTAL_CELLS = 25;
   const MAX_LIVES = 3;
   const RAINBOW_CHANCE = 0.03; // 3% of safe spawns.
-  const SLOW_CHANCE = 1; // 0.035;
+  const SLOW_CHANCE = 0.035;
   const SLOW_RELIEF_MS = 17000; // Rewind one speed level; the ramp resumes from there.
   const SLOW_SPAWN_COOLDOWN_MS = 25000;
-  const LIFE_CHANCE = 1; //0.035;
+  const LIFE_CHANCE = 0.035;
   const LIFE_SPAWN_COOLDOWN_MS = 30000;
   const STORAGE_KEY = 'cool_pop_yt_best_v1';
   const PREVIOUS_STORAGE_KEY = 'prism_tap_yt_best_v1';
@@ -732,14 +732,10 @@ const Game = (() => {
     for (let i = 0; i < MAX_LIVES; i++) {
       const isAlive = i < lives;
       const wrapper = document.createElement('div');
-      wrapper.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
-        isAlive
-          ? 'text-rose-500 shadow-sm'
-          : 'bg-slate-100/80 text-slate-300 scale-90'
-      } ${i === lostLifeIndex ? 'life-lost-anim' : ''}`;
+      wrapper.className = `life-indicator ${isAlive ? 'life-indicator-alive' : 'life-indicator-lost'} ${i === lostLifeIndex ? 'life-lost-anim' : ''}`;
 
       wrapper.innerHTML = `
-        <svg class="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="${isAlive ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.2">
+        <svg class="life-icon" viewBox="0 0 24 28" fill="${isAlive ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
       `;
@@ -792,8 +788,8 @@ const Game = (() => {
     const diff = getDifficultyParams();
     if (diff.level > currentSpeedLevel) {
       SoundFX.playSpeedUp();
-      speedBadge.classList.add('text-sky-600', 'scale-110');
-      setTimeout(() => speedBadge.classList.remove('text-sky-600', 'scale-110'), 350);
+      speedBadge.classList.add('speed-badge-updated');
+      setTimeout(() => speedBadge.classList.remove('speed-badge-updated'), 350);
     }
     currentSpeedLevel = diff.level;
     peakSpeedLevel = Math.max(peakSpeedLevel, diff.level);
@@ -1214,8 +1210,8 @@ const Game = (() => {
       ? 'Miss a cool balloon and lose a life, too.'
       : 'Missed balloons only reset your combo.';
     liveRuleHint.innerHTML = strictMissMode
-      ? 'Hard mode • <span class="text-rose-500">Red pops &amp; misses cost a life</span>'
-      : 'Pop cool balloons • <span class="text-rose-500">Let red float by</span>';
+      ? 'Hard mode • <span class="rule-danger">Red pops &amp; misses cost a life</span>'
+      : 'Pop cool balloons • <span class="rule-danger">Let red float by</span>';
   }
 
   // Wire UI Controls & Listeners
@@ -1294,20 +1290,6 @@ const Game = (() => {
     muteBtn.addEventListener('click', () => {
       SoundFX.toggleUserMute();
       syncAudioIcons();
-    });
-
-    const themeBtn = document.getElementById('themeBtn');
-    function syncThemeButton() {
-      const isDark = document.documentElement.dataset.theme !== 'light';
-      themeBtn.setAttribute('aria-pressed', String(isDark));
-      document.getElementById('themeLabel').textContent = isDark ? 'Light mode' : 'Dark mode';
-    }
-    syncThemeButton();
-    themeBtn.addEventListener('click', () => {
-      const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = theme;
-      syncThemeButton();
-      try { localStorage.setItem('cool_pop_theme_v1', theme); } catch (error) {}
     });
 
     strictMissToggle.addEventListener('change', syncDifficulty);
