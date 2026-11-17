@@ -48,14 +48,14 @@ const YTPlayables = (() => {
           window.ytgame.game.gameReady();
         }
 
-        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        statusDot.className = 'sdk-status-dot sdk-status-dot-native';
         statusText.textContent = 'YouTube Playables';
       } catch (err) {
         console.warn('YT Playables SDK init fallback:', err);
       }
     } else {
       // Standalone play uses local storage and needs no SDK shim.
-      statusDot.className = 'w-2 h-2 rounded-full bg-sky-500';
+      statusDot.className = 'sdk-status-dot sdk-status-dot-standalone';
       statusText.textContent = 'Made for a little play';
     }
 
@@ -347,13 +347,13 @@ const RAINBOW_PALETTE = {
 const SLOW_PALETTE = {
   name: 'Slowdown',
   image: 'assets/balloons/b-white.webp',
-  lip: '#8B9DBA',
+  lip: '#19263b',
   particle: ['#FFFFFF', '#DCE5F2', '#A9C3E3']
 };
 const LIFE_PALETTE = {
   name: 'Extra Life',
   image: 'assets/balloons/b-white.webp',
-  lip: '#D43157',
+  lip: '#ad7480',
   particle: ['#FFFFFF', '#FFD6E5', '#F08AA9']
 };
 
@@ -365,7 +365,7 @@ function renderBalloon(tileEl, palette, { isHazard = false, isRainbow = false, i
 
     // Inner SVG shrinking perimeter progress ring + center icon/pip
     const centerGraphic = isHazard
-      ? `<svg class="hazard w-6 h-6 sm:w-6 sm:h-6 text-white drop-shadow pointer-events-none relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
+      ? `<svg class="hazard hazard-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6">
            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
          </svg>`
       : isRainbow ? `<span class="rainbow-label" aria-hidden="true">×2</span>`
@@ -381,7 +381,7 @@ function renderBalloon(tileEl, palette, { isHazard = false, isRainbow = false, i
           <path d="M12 21 3.8 12.7A5 5 0 0 1 11 5.8L12 6.8l1-1a5 5 0 0 1 7.2 6.9Z" fill="currentColor" />
           <path d="M12 9v7m-3.5-3.5h7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
         </svg>`
-      : `<div class="safe-pip pointer-events-none"></div>`;
+      : `<div class="safe-pip"></div>`;
 
     tileEl.innerHTML = `
       <img class="balloon-art" src="${palette.image}" alt="" aria-hidden="true" draggable="false">
@@ -504,11 +504,11 @@ const FXEngine = (() => {
         if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.globalAlpha = (1 - progress) * .42;
+      ctx.globalAlpha = (1 - progress) * 0.5;
       ctx.fillStyle = s.color;
       ctx.fill();
       ctx.globalAlpha = (1 - progress) * .65;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#ffffff88';
       ctx.lineWidth = 1.8;
       ctx.stroke();
       ctx.restore();
@@ -580,13 +580,13 @@ const FXEngine = (() => {
       const drawX = Math.max(halfWidth + 6, Math.min(window.innerWidth - halfWidth - 6, ft.x));
       ctx.lineJoin = 'round';
       ctx.lineWidth = 3;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = ft.color; //'#ffffff';
       ctx.shadowColor = 'rgba(16, 56, 85, 0.35)';
       ctx.shadowBlur = 7;
       ctx.shadowOffsetY = 2;
       ctx.strokeText(ft.text, drawX, ft.y);
       ctx.shadowColor = 'transparent';
-      ctx.fillStyle = ft.color;
+      ctx.fillStyle = '#ffffff';
       ctx.fillText(ft.text, drawX, ft.y);
       ctx.restore();
     }
@@ -669,7 +669,17 @@ const Game = (() => {
   let tileUidCounter = 0;
   let gameOverTimer = null;
 
+  function closeOptions(restoreFocus = false) {
+    const popover = document.getElementById('optionsPopover');
+    if (popover.hidden) return;
+    popover.hidden = true;
+    const button = document.getElementById('optionsBtn');
+    button.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) button.focus({ preventScroll: true });
+  }
+
   function setScreen(screen) {
+    if (screen !== 'play') closeOptions();
     document.body.dataset.screen = screen;
     const modalOpen = screen !== 'play';
     document.querySelector('header').inert = modalOpen;
@@ -722,14 +732,10 @@ const Game = (() => {
     for (let i = 0; i < MAX_LIVES; i++) {
       const isAlive = i < lives;
       const wrapper = document.createElement('div');
-      wrapper.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
-        isAlive
-          ? 'border border-rose-200/90 text-rose-500 shadow-sm'
-          : 'bg-slate-100/80 border border-slate-200/60 text-slate-300 scale-90'
-      } ${i === lostLifeIndex ? 'life-lost-anim' : ''}`;
+      wrapper.className = `life-indicator ${isAlive ? 'life-indicator-alive' : 'life-indicator-lost'} ${i === lostLifeIndex ? 'life-lost-anim' : ''}`;
 
       wrapper.innerHTML = `
-        <svg class="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="${isAlive ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.2">
+        <svg class="life-icon" viewBox="0 0 24 28" fill="${isAlive ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
       `;
@@ -782,8 +788,8 @@ const Game = (() => {
     const diff = getDifficultyParams();
     if (diff.level > currentSpeedLevel) {
       SoundFX.playSpeedUp();
-      speedBadge.classList.add('text-sky-600', 'scale-110');
-      setTimeout(() => speedBadge.classList.remove('text-sky-600', 'scale-110'), 350);
+      speedBadge.classList.add('speed-badge-updated');
+      setTimeout(() => speedBadge.classList.remove('speed-badge-updated'), 350);
     }
     currentSpeedLevel = diff.level;
     peakSpeedLevel = Math.max(peakSpeedLevel, diff.level);
@@ -1077,7 +1083,7 @@ const Game = (() => {
 
     state = 'PLAYING';
     lastFrameTime = performance.now();
-    document.getElementById('pauseBtn').focus({ preventScroll: true });
+    document.getElementById('optionsBtn').focus({ preventScroll: true });
   }
 
   function pauseGame() {
@@ -1098,7 +1104,7 @@ const Game = (() => {
     state = 'PLAYING';
     setScreen('play');
     lastFrameTime = performance.now();
-    document.getElementById('pauseBtn').focus({ preventScroll: true });
+    document.getElementById('optionsBtn').focus({ preventScroll: true });
   }
 
   function endGame() {
@@ -1204,18 +1210,31 @@ const Game = (() => {
       ? 'Miss a cool balloon and lose a life, too.'
       : 'Missed balloons only reset your combo.';
     liveRuleHint.innerHTML = strictMissMode
-      ? 'Hard mode • <span class="text-rose-500">Red pops &amp; misses cost a life</span>'
-      : 'Pop cool balloons • <span class="text-rose-500">Let red float by</span>';
+      ? 'Hard mode • <span class="rule-danger">Red pops &amp; misses cost a life</span>'
+      : 'Pop cool balloons • <span class="rule-danger">Let red float by</span>';
   }
 
   // Wire UI Controls & Listeners
   function bindEvents() {
     const howToPlayBtn = document.getElementById('howToPlayBtn');
     const gameHelpBtn = document.getElementById('gameHelpBtn');
+    const optionsBtn = document.getElementById('optionsBtn');
+    const optionsPopover = document.getElementById('optionsPopover');
+    optionsBtn.addEventListener('click', () => {
+      const opening = optionsPopover.hidden;
+      optionsPopover.hidden = !opening;
+      optionsBtn.setAttribute('aria-expanded', String(opening));
+      if (opening) gameHelpBtn.focus({ preventScroll: true });
+      else optionsBtn.focus({ preventScroll: true });
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!event.target.closest('.options-wrap')) closeOptions();
+    });
     let helpOpenedDuringPlay = false;
     howToPlayBtn.addEventListener('click', () => howToPlayModal.showModal());
     gameHelpBtn.addEventListener('click', () => {
       if (state !== 'PLAYING') return;
+      closeOptions();
       helpOpenedDuringPlay = true;
       state = 'PAUSED';
       setScreen('pause');
@@ -1229,7 +1248,7 @@ const Game = (() => {
         state = 'PLAYING';
         setScreen('play');
         lastFrameTime = performance.now();
-        gameHelpBtn.focus({ preventScroll: true });
+        optionsBtn.focus({ preventScroll: true });
       } else {
         howToPlayBtn.focus({ preventScroll: true });
       }
@@ -1263,6 +1282,7 @@ const Game = (() => {
       const muted = SoundFX.isMuted();
       soundOnIcon.classList.toggle('hidden', muted);
       soundOffIcon.classList.toggle('hidden', !muted);
+      document.getElementById('soundLabel').textContent = muted ? 'Sound off' : 'Sound on';
       muteBtn.setAttribute('aria-pressed', String(muted));
       muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
     }
@@ -1279,6 +1299,10 @@ const Game = (() => {
     window.addEventListener('keydown', (e) => {
       // The native help dialog handles focus and Escape; game shortcuts must wait.
       if (howToPlayModal.open) return;
+      if (e.key === 'Escape' && !optionsPopover.hidden) {
+        closeOptions(true);
+        return;
+      }
       if (e.key === 'Tab' && !modalBackdrop.classList.contains('hidden')) {
         const visibleModal = [startModal, pauseModal, gameOverModal].find((el) => !el.classList.contains('hidden'));
         const controls = visibleModal.querySelectorAll('button, input');
