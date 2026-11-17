@@ -1320,6 +1320,10 @@ body[data-screen="start"] #modalBackdrop {
    width: 100%;
    height: auto;
    pointer-events: none;
+   max-width: 80%;
+   text-align: center;
+   margin: auto;
+   padding-top: 50px;
 }
 
 .how-to-play-button {
