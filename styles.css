@@ -608,6 +608,7 @@ input:focus-visible + .toggle-track {
    inset: 0;
    pointer-events: none;
    overflow: hidden;
+   opacity: 0.5;
 }
 .pool-grid {
    position: absolute;
@@ -1313,9 +1314,9 @@ body[data-screen="start"] #modalBackdrop {
    );
    aspect-ratio: 459 / 1024;
    container-type: inline-size;
-}
+} 
 
-.home-art {
+.home-title {
    display: block;
    width: 100%;
    height: auto;
@@ -1324,6 +1325,17 @@ body[data-screen="start"] #modalBackdrop {
    text-align: center;
    margin: auto;
    padding-top: 50px;
+}
+
+.home-art {
+   display: block;
+   width: 160%;
+   height: auto;
+   pointer-events: none;
+   margin: auto;
+   position: absolute;
+   bottom: 16%;
+   left: -27%;
 }
 
 .how-to-play-button {
@@ -1386,7 +1398,7 @@ body[data-screen="start"] #modalBackdrop {
    display: flex;
    align-items: center;
    justify-content: flex-start;
-   gap: 3cqw;
+   gap: 1cqw;
    width: 50%;
    min-height: 15cqw;
    padding: 6cqw 8cqw;
@@ -2052,7 +2064,7 @@ body {
    fill-opacity: 0.06;
 }
 .ambient-orb {
-   opacity: 0.12;
+   opacity: 0.08;
 }
 .grid-cell {
    background: radial-gradient(ellipse, #ab79ef13, transparent 65%);
